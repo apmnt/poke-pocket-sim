@@ -140,6 +140,9 @@ class Player:
         self.active_card = random.choice(self.bench)
         self.bench.remove(self.active_card)
         self.bench.append(old_active_card)
+        print(
+            f"{old_active_card.name} retreated, {self.active_card.name} set as active"
+        )
 
     def set_active_card(self, card):
         print(f"Setting active card to {card.name}")
