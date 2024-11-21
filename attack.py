@@ -6,7 +6,9 @@ class Attack:
 
     def act(self, player):
         player.opponent.active_card.hp -= self.damage
-        
+        if player.opponent.active_card.type is player.active_card.type:
+            player.opponent.active_card.hp -= 20
+
     def able_to_use(self, card):
         for energy_type, required_amount in self.energy_cost.items():
             if card.energies.get(energy_type, 0) < required_amount:

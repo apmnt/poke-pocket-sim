@@ -7,7 +7,8 @@ class Card:
         self,
         name,
         hp,
-        energies={},
+        type=None,
+        energies=None,
         attacks=None,
         retreat_cost=0,
         modifiers=None,
@@ -19,7 +20,8 @@ class Card:
         self.id = uuid.uuid4()
         self.name = name
         self.hp = hp
-        self.energies = energies
+        self.type = type
+        self.energies = energies if energies is not None else {}
         self.attacks = attacks
         self.retreat_cost = retreat_cost
         self.modifiers = modifiers
@@ -48,4 +50,7 @@ class Card:
         return sum(self.energies.values())
 
     def __repr__(self):
-        return f"Card({self.name} with {self.hp} hp, {self.get_total_energy()} energy)"
+        energies_str = ", ".join(
+            f"{energy}: {amount}" for energy, amount in self.energies.items()
+        )
+        return f"Card({self.name} with {self.hp} hp, Energies: {energies_str})"
