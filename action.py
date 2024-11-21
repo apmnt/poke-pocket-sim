@@ -7,6 +7,7 @@ class ActionType(Enum):
     ATTACK = 2
     SET_ACTIVE_CARD = 3
     ADD_ENERGY = 4
+    ADD_CARD_TO_BENCH = 5
 
 
 class Action:
@@ -18,13 +19,9 @@ class Action:
 
     def act(self, player):
         print(f"Acting: {self.name}")
-        if self.action_type == ActionType.FUNCTION:
-            self.function()
-        elif self.action_type == ActionType.ATTACK:
+        if self.action_type == ActionType.ATTACK:
             self.function.act(player)
-        elif self.action_type == ActionType.SET_ACTIVE_CARD:
-            self.function()
-        elif self.action_type == ActionType.ADD_ENERGY:
+        else:
             self.function()
         return self.can_continue_turn
 

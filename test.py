@@ -13,6 +13,7 @@ test_card2 = Card("test card 2", 50, attacks=[test_attack1, test_attack2])
 test_card3 = Card("test card 3", 50, attacks=[test_attack1, test_attack2])
 test_card4 = Card("test card 4", 50, attacks=[test_attack1, test_attack2])
 test_card5 = Card("test card 5", 50, attacks=[test_attack1, test_attack2])
+test_card6 = Card("test card 6", 50, attacks=[test_attack1, test_attack2])
 
 test_deck1 = Deck(energy_types=["fire", "water"])
 test_deck1.add_card(test_card1)
@@ -20,9 +21,9 @@ test_deck1.add_card(test_card2)
 test_deck1.add_card(test_card3)
 test_deck1.add_card(test_card4)
 test_deck1.add_card(test_card5)
+test_deck1.add_card(test_card6)
 
 test_deck2 = copy.deepcopy(test_deck1)
-
 
 test_player1 = Player("p1", test_deck1)
 test_player2 = Player("p2", test_deck2)

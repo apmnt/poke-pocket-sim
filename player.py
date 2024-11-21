@@ -38,7 +38,7 @@ class Player:
 
         # Do random action
         if len(actions) > 0:
-            random_action = random.choice(actions)
+            random_action = actions.pop(random.randint(0, len(actions) - 1))
             can_continue = True
         else:
             can_continue = False
@@ -94,6 +94,16 @@ class Player:
                     )
                 )
 
+            for card in self.hand:
+                if card.is_basic:
+                    actions.append(
+                        Action(
+                            f"Add {card.name} to bench",
+                            lambda card=card: self.add_card_to_bench(card),
+                            ActionType.ADD_CARD_TO_BENCH,
+                        )
+                    )
+
             if self.has_added_energy is False:
                 actions.append(
                     Action(
@@ -112,7 +122,7 @@ class Player:
                             ActionType.ADD_ENERGY,
                         )
                     )
-   
+
         else:
             for card in self.hand:
                 if card.is_basic:
@@ -135,6 +145,13 @@ class Player:
         print(f"Setting active card to {card.name}")
         self.active_card = card
         self.hand.remove(card)
+
+    def add_card_to_bench(self, card):
+        if card not in self.hand:
+            raise Exception(f"Card {card.name} not in hand")
+        if len(self.bench) < 3:
+            self.bench.append(card)
+            self.hand.remove(card)
 
     def reset_for_turn(self):
         self.has_added_energy = False
