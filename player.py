@@ -1,5 +1,7 @@
 import random
 from action import Action, ActionType
+from card import Card
+from item import Item
 
 
 class Player:
@@ -60,8 +62,9 @@ class Player:
                 ]
                 if match.turn > 2:
                     actions = self.gather_actions()
-            elif random_action.action_type is ActionType.ADD_ENERGY:
-                self.has_added_energy = True
+            else:
+                if random_action.action_type is ActionType.ADD_ENERGY:
+                    self.has_added_energy = True
                 actions = self.gather_actions()
 
             if len(actions) > 0:
@@ -94,6 +97,22 @@ class Player:
     def gather_actions(self):
         actions = []
         if self.active_card is not None:
+
+            # ITEM
+            for card in self.hand:
+                if type(Item.Potion):
+                    for pokemon in self.bench + [self.active_card]:
+                        if Item.Potion.card_able_to_use(pokemon):
+                            actions.append(
+                                Action(
+                                    f"Use potion on ({self.active_card})",
+                                    lambda pokemon=pokemon: Item.Potion.use(pokemon),
+                                    ActionType.ITEM,
+                                    item_class=Item.Potion,
+                                )
+                            )
+
+            # RETREAT
             actions.extend(self.active_card.gather_actions())
             if (
                 self.active_card.get_total_energy() >= self.active_card.retreat_cost
@@ -107,8 +126,9 @@ class Player:
                     )
                 )
 
+            # ADD CARD TO BENCH
             for card in self.hand:
-                if card.is_basic:
+                if type(card) == Card and card.is_basic:
                     actions.append(
                         Action(
                             f"Add {card.name} to bench",
@@ -117,6 +137,7 @@ class Player:
                         )
                     )
 
+            # ADD ENERGY
             if self.has_added_energy is False:
                 actions.append(
                     Action(
@@ -136,9 +157,10 @@ class Player:
                         )
                     )
 
+        # SET AN ACTIVE CARD
         else:
             for card in self.hand:
-                if card.is_basic:
+                if type(card) == Card and card.is_basic:
                     actions.append(
                         Action(
                             f"Set {card.name} as active card",
