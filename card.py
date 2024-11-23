@@ -60,6 +60,19 @@ class Card:
                     can_continue_turn=False,
                 )
 
+    def add_condition(self, condition):
+        self.conditions.append(condition)
+
+    def remove_condition(self, condition_name):
+        self.conditions = [
+            condition for condition in self.conditions if condition != condition_name
+        ]
+
+    def update_conditions(self):
+        self.conditions = [
+            condition for condition in self.conditions if not condition.rid()
+        ]
+
     def add_energy(self, energy):
         if energy in self.energies:
             self.energies[energy] += 1
