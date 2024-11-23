@@ -1,11 +1,13 @@
 import random
+import uuid
 from card import Card
 
 
 class Deck:
-    def __init__(self, energy_types, cards=[]):
+    def __init__(self, energy_types, cards=None):
+        self.uid = uuid.uuid4()
         self.energy_types = energy_types
-        self.cards = cards
+        self.cards = cards if cards is not None else []
 
     def add_card(self, card):
         self.cards.append(card)
