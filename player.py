@@ -11,7 +11,7 @@ class Player:
         self.name = name
         self.deck = deck
 
-        self.hand = [self.deck.draw_card() for _ in range(5)]
+        self.hand = [self.deck.draw_card() for _ in range(min(5, len(self.deck.cards)))]
         self.bench = []
         self.active_card = None
         self.points = 0
@@ -25,6 +25,13 @@ class Player:
 
     def start_turn(self, match):
         self.reset_for_turn()
+
+        if self.active_card is None and match.turn > 2:
+            if len(self.bench) == 0:
+                return True
+            else:
+                self.set_active_card_from_bench(random.choice(self.bench))
+
         drawn_card = self.deck.draw_card()
         if drawn_card is not None:
             self.hand.append(drawn_card)
@@ -67,8 +74,14 @@ class Player:
             print(
                 f"{self.opponent.name}'s {self.opponent.active_card.name} knocked out!"
             )
+
+            if self.opponent.active_card.is_ex:
+                self.points += 2
+            else:
+                self.points += 1
+
             self.opponent.active_card = None
-            self.points += 1
+
             if self.points >= 3:
                 return True
         else:
@@ -129,7 +142,7 @@ class Player:
                     actions.append(
                         Action(
                             f"Set {card.name} as active card",
-                            lambda card=card: self.set_active_card(card),
+                            lambda card=card: self.set_active_card_from_hand(card),
                             ActionType.SET_ACTIVE_CARD,
                         )
                     )
@@ -144,10 +157,15 @@ class Player:
             f"{old_active_card.name} retreated, {self.active_card.name} set as active"
         )
 
-    def set_active_card(self, card):
-        print(f"Setting active card to {card.name}")
+    def set_active_card_from_hand(self, card):
+        print(f"Setting active card from hand to {card.name}")
         self.active_card = card
         self.hand.remove(card)
+
+    def set_active_card_from_bench(self, card):
+        print(f"Setting active card from bench to {card.name}")
+        self.active_card = card
+        self.bench.remove(card)
 
     def add_card_to_bench(self, card):
         if card not in self.hand:
