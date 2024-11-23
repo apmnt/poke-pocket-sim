@@ -1449,10 +1449,20 @@ class Attack:
         return f"Attack(Name: {name}, Damage: {damage}, Energy Cost: {energy_cost})"
 
 
-# Specific function for PSYDRIVE
+# ------------------- SIDE EFFECTS ---------------------------------
+# ------------------- SIDE EFFECTS ---------------------------------
+# ------------------- SIDE EFFECTS ---------------------------------
+
+
 @apply_damage
 def psydrive(player):
     player.active_card.remove_energy(EnergyType.PSYCHIC)
+    player.active_card.remove_energy(EnergyType.PSYCHIC)
+
+
+# ------------------- SIDE EFFECTS ---------------------------------
+# ------------------- SIDE EFFECTS ---------------------------------
+# ------------------- SIDE EFFECTS ---------------------------------
 
 
 def generate_todo_attack_function(function_name):
