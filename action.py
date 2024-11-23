@@ -20,7 +20,7 @@ class Action:
     def act(self, player):
         print(f"Acting: {self.name}")
         if self.action_type == ActionType.ATTACK:
-            self.function.act(player)
+            self.function(player)
         else:
             self.function()
         return self.can_continue_turn
