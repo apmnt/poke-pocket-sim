@@ -16,7 +16,9 @@ class Match:
         else:
             active_player = self.starting_player
             non_active_player = self.second_player
-        print(f"Turn {self.turn}, {active_player.name}")
+        print(
+            f"Turn {self.turn}, {active_player.name}'s turn, {self.starting_player.points} - {self.second_player.points}"
+        )
         self.game_over = active_player.start_turn(self)
         if self.game_over:
             print(0)
