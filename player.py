@@ -6,11 +6,7 @@ from supporter import Supporter
 
 
 class Player:
-    def __init__(
-        self,
-        name,
-        deck,
-    ):
+    def __init__(self, name, deck):
         self.name = name
         self.deck = deck
 
@@ -43,6 +39,8 @@ class Player:
 
         self.current_energy = self.deck.draw_energy()
 
+        print(f"{self.name} hand: ", [c for c in self.hand])
+
         print("Possible actions:")
         actions = self.gather_actions()
         for action in actions:
@@ -57,7 +55,7 @@ class Player:
 
         while can_continue is True:
             can_continue = random_action.act(self)
-            if random_action.action_type is ActionType.SET_ACTIVE_CARD:
+            if random_action.action_type == ActionType.SET_ACTIVE_CARD:
                 actions = [
                     action
                     for action in actions
@@ -66,10 +64,18 @@ class Player:
                 if match.turn > 2:
                     actions = self.gather_actions()
             else:
-                if random_action.action_type is ActionType.ADD_ENERGY:
+                if random_action.action_type == ActionType.ADD_ENERGY:
                     self.has_added_energy = True
-                if random_action.action_type is ActionType.SUPPORTER:
-                    self.has_used_trainer
+                if random_action.action_type == ActionType.SUPPORTER:
+                    self.has_used_trainer = True
+                if random_action.action_type == ActionType.ITEM:
+                    self.hand.remove(
+                        next(
+                            card
+                            for card in self.hand
+                            if isinstance(card, random_action.item_class)
+                        )
+                    )
                 actions = self.gather_actions()
 
             if len(actions) > 0:
@@ -143,7 +149,7 @@ class Player:
             ):
                 actions.append(
                     Action(
-                        f"Retreat active card ({self.active_card}",
+                        f"Retreat active card ({self.active_card})",
                         self.retreat,
                         ActionType.FUNCTION,
                     )
@@ -194,6 +200,12 @@ class Player:
         return actions
 
     def retreat(self):
+        if self.active_card.get_total_energy() < self.active_card.retreat_cost:
+            raise Exception(f"Not enough energy to retreat {self.active_card.name}")
+
+        for _ in range(self.active_card.retreat_cost):
+            self.active_card.remove_retreat_cost_energy()
+
         old_active_card = self.active_card
         self.active_card = random.choice(self.bench)
         self.bench.remove(self.active_card)
