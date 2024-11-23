@@ -10,12 +10,15 @@ test_deck1 = Deck(energy_types=["psychic", "water"])
 test_deck1.add_card(Card.create_card(Cards.MEWTWO_EX))
 test_deck1.add_card(Card.create_card(Cards.MEWTWO_EX))
 test_deck1.add_card(Item.Potion())
+test_deck1.add_card(Item.Potion())
+test_deck1.add_card(Item.Potion())
+test_deck1.add_card(Item.Potion())
 
 
 test_deck2 = Deck(energy_types=["psychic", "water"])
 test_deck2.add_card(Card.create_card(Cards.MEWTWO_EX))
 test_deck2.add_card(Card.create_card(Cards.MEWTWO_EX))
-test_deck1.add_card(Item.Potion())
+test_deck2.add_card(Item.Potion())
 
 
 test_player1 = Player("p1", test_deck1)
