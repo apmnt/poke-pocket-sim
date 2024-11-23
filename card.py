@@ -1,17 +1,23 @@
 import uuid
 from enum import Enum
 from action import Action, ActionType
-from attack import Attack
+from attack import Attack, EnergyType
 
 
-class CardsEnum(Enum):
+class Cards(Enum):
     MEWTWO_EX = "Mewtwo EX"
 
 
 CARDS_DICT = {
-    CardsEnum.MEWTWO_EX: {
+    Cards.MEWTWO_EX: {
         "hp": 150,
+        "type": EnergyType.PSYCHIC,
         "attacks": [Attack.psydrive, Attack.psychic_sphere],
+        "retreat_cost": 2,
+        "ability": None,
+        "weakness": EnergyType.FIGHTING,
+        "is_basic": True,
+        "is_ex": True,
     }
 }
 
@@ -21,12 +27,13 @@ class Card:
         self,
         name,
         hp,
-        type=None,
-        attacks=None,
-        retreat_cost=0,
+        type,
+        attacks,
+        retreat_cost,
         ability=None,
         weakness=None,
         is_basic=True,
+        is_ex=False,
     ):
         self.id = uuid.uuid4()
         self.name = name
@@ -40,12 +47,13 @@ class Card:
         self.conditions = []
         self.weakness = weakness
         self.is_basic = is_basic
+        self.is_ex = is_ex
 
     def gather_actions(self):
         for attack in self.attacks:
-            if attack.able_to_use(self):
+            if Attack.can_use_attack(self, attack):
                 yield Action(
-                    f"{self.name} use {attack.name}",
+                    f"{self.name} use {attack.__name__}",
                     attack,
                     ActionType.ATTACK,
                     can_continue_turn=False,
@@ -57,12 +65,15 @@ class Card:
         else:
             self.energies[energy] = 1
 
-    def remove_energy(self, energy):
+    def remove_energy(self, energy_enum):
+        energy = energy_enum.value
         if energy not in self.energies:
-            raise ValueError(f"Energy type {energy} not found in energies.")
-        if self.energies[energy] <= 0:
-            raise ValueError(f"Energy count for {energy} is already 0 or less.")
-        self.energies[energy] -= 1
+            raise ValueError(f"Energy type {energy_enum.value} not found in energies.")
+        if self.energies[energy_enum.value] <= 0:
+            raise ValueError(
+                f"Energy count for {energy_enum.value} is already 0 or less."
+            )
+        self.energies[energy_enum.value] -= 1
 
     def get_total_energy(self):
         return sum(self.energies.values())
@@ -74,5 +85,9 @@ class Card:
         return f"Card({self.name} with {self.hp} hp, Energies: {energies_str})"
 
     @staticmethod
-    def create_card(card: CardsEnum):
-        return Card(card)
+    def create_card(card_enum: Cards):
+        if card_enum not in CARDS_DICT:
+            raise ValueError(f"Card {card_enum} does not exist in CARDS_DICT.")
+
+        card_info = CARDS_DICT[card_enum]
+        return Card(name=card_enum.value, **card_info)
