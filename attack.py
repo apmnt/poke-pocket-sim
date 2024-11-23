@@ -648,7 +648,7 @@ def apply_damage(func):
     @wraps(func)
     def wrapper(player, *args, **kwargs):
         func(player, *args, **kwargs)
-        attack_name = AttackName[func.__name__.upper()]
+        attack_name = AttackName[func.__name__.upper()].value
         damage = ATTACKS[attack_name]["damage"]
         if (
             damage != 0
