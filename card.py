@@ -1,3 +1,4 @@
+import random
 import uuid
 from enum import Enum
 from action import Action, ActionType
@@ -88,6 +89,17 @@ class Card:
                 f"Energy count for {energy_enum.value} is already 0 or less."
             )
         self.energies[energy_enum.value] -= 1
+
+    def remove_retreat_cost_energy(self):
+        total_energy_needed = self.retreat_cost
+        while total_energy_needed > 0:
+            available_energies = list(self.energies.keys())
+            
+            if not available_energies:
+                raise ValueError("Not enough energy to cover the retreat cost.")
+            selected_energy = random.choice(available_energies)
+            self.energies[selected_energy] -= 1
+            total_energy_needed -= 1
 
     def get_total_energy(self):
         return sum(self.energies.values())
