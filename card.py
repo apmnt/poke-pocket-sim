@@ -37,6 +37,7 @@ class Card:
     ):
         self.id = uuid.uuid4()
         self.name = name
+        self.max_hp = hp
         self.hp = hp
         self.type = type
         self.energies = {}
