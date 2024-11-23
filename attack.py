@@ -667,10 +667,10 @@ class Attack:
         attack_name = attack_func.__name__.replace("_", "-")
         if attack_name not in ATTACKS:
             raise ValueError(f"Attack {attack_name} does not exist")
-        
+
         energies = card.energies.copy()
         attack_cost = ATTACKS[attack_name]["energy"]
-        
+
         # Check specific energy requirements
         for energy_type, cost in attack_cost.items():
             if energy_type == "colorless":
@@ -678,13 +678,11 @@ class Attack:
             if energies.get(energy_type, 0) < cost:
                 return False  # Not enough specific energy
             energies[energy_type] -= cost  # Deduct the used energy
-        
+
         # Check colorless energy requirement
         colorless_cost = attack_cost.get("colorless", 0)
         total_remaining_energy = sum(energies.values())
         return total_remaining_energy >= colorless_cost
-        
-
 
     @staticmethod
     def attack_repr(name, damage, energy_cost):
@@ -696,6 +694,8 @@ class Attack:
 
     @apply_damage
     def psydrive(player):
+        if player.active_card.energies["psychic"] < 2: 
+            raise Exception(f'Not enough energy, only {player.active_card.energies["psychic"]} psychic energy')
         player.active_card.remove_energy(EnergyType.PSYCHIC)
         player.active_card.remove_energy(EnergyType.PSYCHIC)
 
