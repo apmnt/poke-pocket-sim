@@ -1,8 +1,12 @@
 class Item:
-    def __init__(self, name, description, value):
-        self.name = name
-        self.description = description
-        self.value = value
+    class Potion:
+        def __init__(self):
+            pass
 
-    def __repr__(self):
-        return f"Item(Name: {self.name}, Description: {self.description}, Value: {self.value})"
+        def card_able_to_use(card):
+            return card.hp != card.max_hp
+
+        def use(card):
+            card.hp = min(card.hp + 20, card.max_hp)
+            restored_amount = min(20, card.max_hp - card.hp)
+            print(f"\t- Potion used on {card.name}. Restored {restored_amount} HP. Current HP: {card.hp}")
