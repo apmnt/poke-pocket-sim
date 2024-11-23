@@ -2,6 +2,7 @@ import random
 from action import Action, ActionType
 from card import Card
 from item import Item
+from supporter import Supporter
 
 
 class Player:
@@ -19,7 +20,7 @@ class Player:
         self.points = 0
         self.opponent = None
         self.current_energy = None
-        self.has_used_trainer_this_turn = False
+        self.has_used_trainer = False
         self.has_added_energy = False
 
     def set_opponent(self, opponent):
@@ -28,7 +29,9 @@ class Player:
     def start_turn(self, match):
         self.reset_for_turn()
 
-        if self.active_card is None and match.turn > 2:
+        if self.active_card:
+            self.active_card.update_conditions()
+        elif match.turn > 2:
             if len(self.bench) == 0:
                 return True
             else:
@@ -65,6 +68,8 @@ class Player:
             else:
                 if random_action.action_type is ActionType.ADD_ENERGY:
                     self.has_added_energy = True
+                if random_action.action_type is ActionType.SUPPORTER:
+                    self.has_used_trainer
                 actions = self.gather_actions()
 
             if len(actions) > 0:
@@ -100,15 +105,33 @@ class Player:
 
             # ITEM
             for card in self.hand:
-                if type(Item.Potion):
+                if type(card) == Item.Potion:
                     for pokemon in self.bench + [self.active_card]:
                         if Item.Potion.card_able_to_use(pokemon):
                             actions.append(
                                 Action(
-                                    f"Use potion on ({self.active_card})",
+                                    f"Use potion on ({pokemon})",
                                     lambda pokemon=pokemon: Item.Potion.use(pokemon),
                                     ActionType.ITEM,
                                     item_class=Item.Potion,
+                                )
+                            )
+
+                # Break if trainer has already been used this turn
+                if self.has_used_trainer:
+                    break
+
+                if type(card) == Supporter.Erika:
+                    for pokemon in self.bench + [self.active_card]:
+                        if Supporter.Erika.card_able_to_use(pokemon):
+                            actions.append(
+                                Action(
+                                    f"Use Erika on ({pokemon})",
+                                    lambda pokemon=pokemon: Supporter.Erika.use(
+                                        pokemon
+                                    ),
+                                    ActionType.ITEM,
+                                    item_class=Supporter.Erika,
                                 )
                             )
 
@@ -198,7 +221,7 @@ class Player:
 
     def reset_for_turn(self):
         self.has_added_energy = False
-        self.has_used_trainer_this_turn = False
+        self.has_used_trainer = False
 
     def __repr__(self):
-        return f"Player({self.name}, Hand: {self.hand}, Active Card: {self.active_card}, Bench: {self.bench}, Deck: {self.deck}, Energy Queue: {self.energy_queue}, Points: {self.points}, Has Used Trainer This Turn: {self.has_used_trainer_this_turn})"
+        return f"Player({self.name}, Hand: {self.hand}, Active Card: {self.active_card}, Bench: {self.bench}, Deck: {self.deck}, Energy Queue: {self.energy_queue}, Points: {self.points}, Has Used Trainer This Turn: {self.has_used_trainer})"

@@ -9,6 +9,7 @@ class ActionType(Enum):
     ADD_ENERGY = 4
     ADD_CARD_TO_BENCH = 5
     ITEM = 6
+    SUPPORTER = 7
 
 
 class Action:
