@@ -663,14 +663,28 @@ def apply_damage(func):
 class Attack:
 
     @staticmethod
-    def can_use_attack(player, attack_name):
+    def can_use_attack(card, attack_func):
+        attack_name = attack_func.__name__.replace("_", "-")
         if attack_name not in ATTACKS:
             raise ValueError(f"Attack {attack_name} does not exist")
-        energy_cost = ATTACKS[attack_name]["energy"]
-        return all(
-            player.active_card.energies.get(etype, 0) >= amount
-            for etype, amount in energy_cost.items()
-        )
+        
+        energies = card.energies.copy()
+        attack_cost = ATTACKS[attack_name]["energy"]
+        
+        # Check specific energy requirements
+        for energy_type, cost in attack_cost.items():
+            if energy_type == "colorless":
+                continue  # Skip colorless
+            if energies.get(energy_type, 0) < cost:
+                return False  # Not enough specific energy
+            energies[energy_type] -= cost  # Deduct the used energy
+        
+        # Check colorless energy requirement
+        colorless_cost = attack_cost.get("colorless", 0)
+        total_remaining_energy = sum(energies.values())
+        return total_remaining_energy >= colorless_cost
+        
+
 
     @staticmethod
     def attack_repr(name, damage, energy_cost):
