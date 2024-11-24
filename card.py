@@ -62,6 +62,9 @@ class Card:
                 )
 
     def add_condition(self, condition):
+        if any(isinstance(cond, condition.__class__) for cond in self.conditions):
+            # TODO: sometimes the conditions do not get removed off benched pokemon
+            return
         self.conditions.append(condition)
 
     def remove_condition(self, condition_name):
@@ -93,7 +96,9 @@ class Card:
     def remove_retreat_cost_energy(self):
         total_energy_needed = self.retreat_cost
         while total_energy_needed > 0:
-            available_energies = [energy for energy, count in self.energies.items() if count > 0]
+            available_energies = [
+                energy for energy, count in self.energies.items() if count > 0
+            ]
             if not available_energies:
                 raise ValueError("Not enough energy to cover the retreat cost.")
             selected_energy = random.choice(available_energies)
