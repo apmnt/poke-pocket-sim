@@ -39,7 +39,13 @@ class Player:
 
         self.current_energy = self.deck.draw_energy()
 
-        print(f"{self.name} hand: ", [c for c in self.hand])
+        print(f"{self.name} active card: {self.active_card}")
+        print(f"{self.name} hand: ")
+        for c in self.hand:
+            print("\t", c)
+        print(f"{self.name} bench: ")
+        for c in self.bench:
+            print("\t", c)
 
         # Gather actions
         actions = self.gather_actions()
@@ -222,11 +228,22 @@ class Player:
             raise Exception(f"Not enough energy to retreat {self.active_card.name}")
 
         self.active_card.remove_retreat_cost_energy()
+        self.move_active_card_to_bench()
 
+    def move_active_card_to_bench(self):
+        if self.active_card is None:
+            raise Exception("No active card to move to bench")
+        if not self.bench:
+            raise Exception("No cards in the bench to switch with")
         old_active_card = self.active_card
-        self.active_card = random.choice(self.bench)
+        self.bench.append(self.active_card)
+
+        # Ensure the new active card is different from the old one
+        self.active_card = random.choice(
+            [card for card in self.bench if card != old_active_card]
+        )
         self.bench.remove(self.active_card)
-        self.bench.append(old_active_card)
+
         print(
             f"{old_active_card.name} retreated, {self.active_card.name} set as active"
         )
