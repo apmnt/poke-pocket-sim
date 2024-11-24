@@ -21,7 +21,7 @@ class Match:
         )
         self.game_over = active_player.start_turn(self)
         if self.game_over:
-            print(0)
+            print()
             print("------ GAME OVER -------")
             print(
                 f"{active_player.name} won {active_player.points}-{non_active_player.points}"
