@@ -92,7 +92,6 @@ class Player:
             else:
                 can_continue = False
 
-        print(f"Current active card of {self.name} is {self.active_card}")
         if self.opponent.active_card is not None and self.opponent.active_card.hp <= 0:
             print(
                 f"{self.opponent.name}'s {self.opponent.active_card.name} knocked out!"
@@ -107,10 +106,7 @@ class Player:
 
             if self.points >= 3:
                 return True
-        else:
-            print(
-                f"Current active card of {self.opponent.name} is {self.opponent.active_card}"
-            )
+
         print()
         return False
 
