@@ -1,6 +1,7 @@
 # Dynamically created attack methods and their source code:
 from enum import Enum
 from functools import wraps
+from condition import Condition
 
 
 class AttackName(Enum):
@@ -655,6 +656,12 @@ def apply_damage(func):
             and player.opponent.active_card.weakness == player.active_card.type
         ):
             damage += 20
+        if player.active_card.conditions is not []:
+            for condition in player.active_card.conditions:
+                if type(condition) is Condition.Plus10DamageDealed and damage != 0:
+                    damage += 10
+
+        print(f"Dealing {damage} to {player.opponent.active_card.name}")
         player.opponent.active_card.hp -= damage
 
     return wrapper
@@ -694,8 +701,10 @@ class Attack:
 
     @apply_damage
     def psydrive(player):
-        if player.active_card.energies["psychic"] < 2: 
-            raise Exception(f'Not enough energy, only {player.active_card.energies["psychic"]} psychic energy')
+        if player.active_card.energies["psychic"] < 2:
+            raise Exception(
+                f'Not enough energy, only {player.active_card.energies["psychic"]} psychic energy'
+            )
         player.active_card.remove_energy(EnergyType.PSYCHIC)
         player.active_card.remove_energy(EnergyType.PSYCHIC)
 
