@@ -41,13 +41,15 @@ class Player:
 
         print(f"{self.name} hand: ", [c for c in self.hand])
 
-        print("Possible actions:")
+        # Gather actions
         actions = self.gather_actions()
-        for action in actions:
-            print("\t", action)
 
         # Do random action
         if len(actions) > 0:
+            # Print
+            print("Possible actions:")
+            for action in actions:
+                print("\t", action)
             random_action = actions.pop(random.randint(0, len(actions) - 1))
             can_continue = True
         else:
@@ -203,8 +205,7 @@ class Player:
         if self.active_card.get_total_energy() < self.active_card.retreat_cost:
             raise Exception(f"Not enough energy to retreat {self.active_card.name}")
 
-        for _ in range(self.active_card.retreat_cost):
-            self.active_card.remove_retreat_cost_energy()
+        self.active_card.remove_retreat_cost_energy()
 
         old_active_card = self.active_card
         self.active_card = random.choice(self.bench)
