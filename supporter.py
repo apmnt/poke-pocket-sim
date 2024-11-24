@@ -14,9 +14,9 @@ class Supporter:
 
     class Giovanni:
         def use(player):
-            player.active_card.add_condition(Condition.Plus10DamageDealed)
+            player.active_card.add_condition(Condition.Plus10DamageDealed())
             for card in player.bench:
-                card.add_condition(Condition.Plus10DamageDealed)
+                card.add_condition(Condition.Plus10DamageDealed())
 
     class Sabrina:
         def player_able_to_use(player):
