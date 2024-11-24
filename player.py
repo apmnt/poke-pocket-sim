@@ -57,6 +57,7 @@ class Player:
 
         while can_continue is True:
             can_continue = random_action.act(self)
+
             if random_action.action_type == ActionType.SET_ACTIVE_CARD:
                 actions = [
                     action
@@ -70,17 +71,17 @@ class Player:
                     self.has_added_energy = True
                 if random_action.action_type == ActionType.SUPPORTER:
                     self.has_used_trainer = True
+                    self.remove_item_from_hand(random_action.item_class)
+
                 if random_action.action_type == ActionType.ITEM:
-                    self.hand.remove(
-                        next(
-                            card
-                            for card in self.hand
-                            if isinstance(card, random_action.item_class)
-                        )
-                    )
+                    self.remove_item_from_hand(random_action.item_class)
                 actions = self.gather_actions()
 
-            if len(actions) > 0:
+            if can_continue and len(actions) > 0:
+                # Print
+                print("Possible actions:")
+                for action in actions:
+                    print("\t", action)
                 random_action = actions.pop(random.randint(0, len(actions) - 1))
             else:
                 can_continue = False
@@ -106,6 +107,11 @@ class Player:
             )
         print()
         return False
+
+    def remove_item_from_hand(self, item_class):
+        self.hand.remove(
+            next(card for card in self.hand if isinstance(card, item_class))
+        )
 
     def gather_actions(self):
         actions = []
@@ -142,6 +148,16 @@ class Player:
                                     item_class=Supporter.Erika,
                                 )
                             )
+
+                if type(card) == Supporter.Giovanni:
+                    actions.append(
+                        Action(
+                            f"Use Giovanni",
+                            lambda player=self: Supporter.Giovanni.use(player),
+                            ActionType.ITEM,
+                            item_class=Supporter.Giovanni,
+                        )
+                    )
 
             # RETREAT
             actions.extend(self.active_card.gather_actions())
