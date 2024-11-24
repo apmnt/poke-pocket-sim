@@ -93,12 +93,11 @@ class Card:
     def remove_retreat_cost_energy(self):
         total_energy_needed = self.retreat_cost
         while total_energy_needed > 0:
-            available_energies = list(self.energies.keys())
-            
+            available_energies = [energy for energy, count in self.energies.items() if count > 0]
             if not available_energies:
                 raise ValueError("Not enough energy to cover the retreat cost.")
             selected_energy = random.choice(available_energies)
-            self.energies[selected_energy] -= 1
+            self.remove_energy(EnergyType(selected_energy))
             total_energy_needed -= 1
 
     def get_total_energy(self):
