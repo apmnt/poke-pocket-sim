@@ -6,6 +6,21 @@ from supporter import Supporter
 
 
 class Player:
+    """
+    Represents a player in the game.
+
+    Attributes:
+        name (str): The name of the player.
+        deck (Deck): The deck of cards the player has.
+        hand (list of Card): The cards currently in the player's hand.
+        bench (list of Card): The cards currently on the player's bench.
+        active_card (Card): The card currently active for the player.
+        points (int): The points the player has scored.
+        opponent (Player): The opponent player.
+        current_energy (Energy): The current energy available to the player.
+        has_used_trainer (bool): Indicates if the player has used a trainer card this turn.
+        has_added_energy (bool): Indicates if the player has added energy this turn.
+    """
     def __init__(self, name, deck):
         self.name = name
         self.deck = deck
@@ -25,20 +40,26 @@ class Player:
     def start_turn(self, match):
         self.reset_for_turn()
 
+        # Update conditions
         if self.active_card:
             self.active_card.update_conditions()
         elif match.turn > 2:
+            # If active card is knocked out and there are no cards on the bench
+            # Game over
             if len(self.bench) == 0:
                 return True
             else:
                 self.set_active_card_from_bench(random.choice(self.bench))
 
+        # Draw card
         drawn_card = self.deck.draw_card()
         if drawn_card is not None:
             self.hand.append(drawn_card)
 
+        # Draw energy
         self.current_energy = self.deck.draw_energy()
 
+        # Prints
         print(f"{self.name} active card: {self.active_card}")
         print(f"{self.name} hand: ")
         for c in self.hand:
@@ -52,7 +73,7 @@ class Player:
 
         # Do random action
         if len(actions) > 0:
-            # Print
+            # Print actions
             print("Possible actions:")
             for action in actions:
                 print("\t", action)
@@ -61,6 +82,7 @@ class Player:
         else:
             can_continue = False
 
+        # Action loop, act -> gather -> act... until attack or actions run out
         while can_continue is True:
             can_continue = random_action.act(self)
 
@@ -84,7 +106,7 @@ class Player:
                 actions = self.gather_actions()
 
             if can_continue and len(actions) > 0:
-                # Print
+                # Print actions
                 print("Possible actions:")
                 for action in actions:
                     print("\t", action)
