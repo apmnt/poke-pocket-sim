@@ -2,6 +2,17 @@
 
 Under development!
 
+Currently features almost every mechanic except abilities and evolutions. Most of the implementations need improvement code qua
+lity and performance wise. Manual work included adding attacks with special effects, abilities, and trainers. Pokemon can be added by scraping the pokemon list and generating necessary code.
+
+
+Roadmap:
+
+- Add abilities
+- Add evolutions
+- Add data collection for match analysis
+- Add user based inputs to make it user/bot playable
+
 Output snippet:
 
 ```
