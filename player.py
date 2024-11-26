@@ -161,8 +161,17 @@ class Player:
                         )
                     )
 
-            # RETREAT
+            # ABILITY
+            for card in self.bench + [self.active_card]:
+                if card.ability and not card.has_used_ability and card.ability.able_to_use(card):
+                    ability_actions = card.ability.gather_actions(self, card)
+                    if ability_actions:
+                        actions.extend(ability_actions)
+
+            # ATTACKS
             actions.extend(self.active_card.gather_actions())
+
+            # RETREAT
             if (
                 self.active_card.get_total_energy() >= self.active_card.retreat_cost
                 and len(self.bench) > 0
@@ -264,6 +273,9 @@ class Player:
     def reset_for_turn(self):
         self.has_added_energy = False
         self.has_used_trainer = False
+        if self.active_card:
+            for card in self.bench + [self.active_card]:
+                card.has_used_ability = False
 
     def __repr__(self):
         return f"Player({self.name}, Hand: {self.hand}, Active Card: {self.active_card}, Bench: {self.bench}, Deck: {self.deck}, Energy Queue: {self.energy_queue}, Points: {self.points}, Has Used Trainer This Turn: {self.has_used_trainer})"

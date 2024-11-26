@@ -10,6 +10,7 @@ class ActionType(Enum):
     ADD_CARD_TO_BENCH = 5
     ITEM = 6
     SUPPORTER = 7
+    ABILITY = 8
 
 
 class Action:

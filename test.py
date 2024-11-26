@@ -6,9 +6,9 @@ from match import Match
 from item import Item
 from supporter import Supporter
 
-test_deck1 = Deck(energy_types=["psychic", "water"])
-test_deck1.add_card(Card.create_card(Cards.MEWTWO_EX))
-test_deck1.add_card(Card.create_card(Cards.MEWTWO_EX))
+test_deck1 = Deck(energy_types=["water"])
+test_deck1.add_card(Card.create_card(Cards.GARDEVOIR))
+test_deck1.add_card(Card.create_card(Cards.GARDEVOIR))
 test_deck1.add_card(Item.Potion())
 test_deck1.add_card(Item.Potion())
 test_deck1.add_card(Item.Potion())
@@ -19,9 +19,9 @@ test_deck1.add_card(Supporter.Giovanni())
 test_deck1.add_card(Supporter.Giovanni())
 
 
-test_deck2 = Deck(energy_types=["psychic", "water"])
-test_deck2.add_card(Card.create_card(Cards.MEWTWO_EX))
-test_deck2.add_card(Card.create_card(Cards.MEWTWO_EX))
+test_deck2 = Deck(energy_types=["water"])
+test_deck2.add_card(Card.create_card(Cards.GARDEVOIR))
+test_deck2.add_card(Card.create_card(Cards.GARDEVOIR))
 test_deck2.add_card(Item.Potion())
 
 

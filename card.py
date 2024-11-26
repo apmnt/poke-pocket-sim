@@ -3,10 +3,12 @@ import uuid
 from enum import Enum
 from action import Action, ActionType
 from attack import Attack, EnergyType
+from ability import Ability
 
 
 class Cards(Enum):
     MEWTWO_EX = "Mewtwo EX"
+    GARDEVOIR = "Gardevoir"
 
 
 CARDS_DICT = {
@@ -19,7 +21,17 @@ CARDS_DICT = {
         "weakness": EnergyType.FIGHTING,
         "is_basic": True,
         "is_ex": True,
-    }
+    },
+    Cards.GARDEVOIR: {
+        "hp": 110,
+        "type": EnergyType.PSYCHIC,
+        "attacks": [Attack.psyshot],
+        "retreat_cost": 2,
+        "ability": Ability.PsyShadow(),
+        "weakness": EnergyType.DARKNESS,
+        "is_basic": True,
+        "is_ex": False,
+    },
 }
 
 
@@ -50,6 +62,7 @@ class Card:
         self.weakness = weakness
         self.is_basic = is_basic
         self.is_ex = is_ex
+        self.has_used_ability = False
 
     def gather_actions(self):
         for attack in self.attacks:
