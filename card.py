@@ -64,16 +64,6 @@ class Card:
         self.is_ex = is_ex
         self.has_used_ability = False
 
-    def gather_actions(self):
-        for attack in self.attacks:
-            if Attack.can_use_attack(self, attack):
-                yield Action(
-                    f"{self.name} use {attack.__name__}",
-                    attack,
-                    ActionType.ATTACK,
-                    can_continue_turn=False,
-                )
-
     def add_condition(self, condition):
         if any(isinstance(cond, condition.__class__) for cond in self.conditions):
             # TODO: sometimes the conditions do not get removed off benched pokemon
