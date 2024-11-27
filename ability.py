@@ -1,17 +1,25 @@
 import random
+from typing import TYPE_CHECKING, List
 from attack import EnergyType
 from action import Action, ActionType
 
+if TYPE_CHECKING:
+    from player import Player
+    from card import Card
 
+
+# TODO: fix multiple abilities
 class Ability:
     class PsyShadow:
         def __init__(self):
             self.name = "Psy Shadow"
 
-        def able_to_use(self, player):
+        def able_to_use(self, player: "Player") -> bool:
             return True
 
-        def gather_actions(self, player, card_using_ability):
+        def gather_actions(
+            self, player: "Player", card_using_ability: "Card"
+        ) -> List["Action"]:
             actions = []
             for card in player.bench + [player.active_card]:
                 actions.append(
@@ -25,7 +33,7 @@ class Ability:
                 )
             return actions
 
-        def use(self, target_card, using_card):
+        def use(self, target_card: "Card", using_card: "Card"):
             if using_card.has_used_ability:
                 raise Exception(
                     f"{using_card.name} has already used {self.name} ability"
