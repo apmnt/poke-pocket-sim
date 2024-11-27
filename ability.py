@@ -20,18 +20,14 @@ class Ability:
         def gather_actions(
             self, player: "Player", card_using_ability: "Card"
         ) -> List["Action"]:
-            actions = []
-            for card in player.bench + [player.active_card]:
-                actions.append(
-                    Action(
-                        f"Use ability {self.name} on {card.name}",
-                        lambda card=card, card_using_ability=card_using_ability, self=self: self.use(
+            ab_action = Action(
+                        f"Use ability {self.name} on {player.active_card.name}",
+                        lambda card=player.active_card, card_using_ability=card_using_ability, self=self: self.use(
                             card, card_using_ability
                         ),
                         ActionType.ABILITY,
                     )
-                )
-            return actions
+            return ab_action
 
         def use(self, target_card: "Card", using_card: "Card"):
             if using_card.has_used_ability:
