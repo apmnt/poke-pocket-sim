@@ -11,6 +11,8 @@ class ActionType(Enum):
     ITEM = 6
     SUPPORTER = 7
     ABILITY = 8
+    EVOLVE = 9
+    RETREAT = 10
 
 
 class Action:
@@ -33,6 +35,10 @@ class Action:
                     player.hand.remove(card)
                     break
             self.function()
+        elif self.action_type == ActionType.ADD_CARD_TO_BENCH:
+            self.function(player)        
+        elif self.action_type == ActionType.FUNCTION:
+            self.function(player)
         else:
             self.function()
         return self.can_continue_turn

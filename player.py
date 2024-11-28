@@ -191,6 +191,25 @@ class Player:
                         )
                     )
 
+            # EVOLUTIONS
+            for card in self.hand:
+                if isinstance(card, Card) and card.evolves_from is not None:
+                    for card_to_evolve in self.bench + [self.active_card]:
+                        if (
+                            card_to_evolve
+                            and card.evolves_from.value is card_to_evolve.name
+                            and card_to_evolve.can_evolve
+                        ):
+                            actions.append(
+                                Action(
+                                    f"Evolve {card_to_evolve.name} to {card.name}",
+                                    lambda card_to_evolve=card_to_evolve, evolution_card=card: self.evolve_and_remove_from_hand(
+                                        card_to_evolve, evolution_card
+                                    ),
+                                    ActionType.EVOLVE,
+                        )
+                    )
+
             # ABILITY
             for card in self.bench + [self.active_card]:
                 if (

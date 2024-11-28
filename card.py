@@ -4,10 +4,16 @@ from enum import Enum
 from action import Action, ActionType
 from attack import Attack, EnergyType
 from ability import Ability
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from player import Player
 
 
 class Cards(Enum):
     MEWTWO_EX = "Mewtwo EX"
+    RALTS = "Ralts"
+    KIRLIA = "Kirlia"
     GARDEVOIR = "Gardevoir"
 
 
@@ -21,6 +27,29 @@ CARDS_DICT = {
         "weakness": EnergyType.FIGHTING,
         "is_basic": True,
         "is_ex": True,
+        "evolves_from": None,
+    },
+    Cards.RALTS: {
+        "hp": 60,
+        "type": EnergyType.PSYCHIC,
+        "attacks": [Attack.ram],
+        "retreat_cost": 1,
+        "ability": None,
+        "weakness": EnergyType.DARKNESS,
+        "is_basic": True,
+        "is_ex": False,
+        "evolves_from": None,
+    },
+    Cards.KIRLIA: {
+        "hp": 80,
+        "type": EnergyType.PSYCHIC,
+        "attacks": [Attack.smack],
+        "retreat_cost": 1,
+        "ability": None,
+        "weakness": EnergyType.DARKNESS,
+        "is_basic": False,
+        "is_ex": False,
+        "evolves_from": Cards.RALTS,
     },
     Cards.GARDEVOIR: {
         "hp": 110,
@@ -29,8 +58,9 @@ CARDS_DICT = {
         "retreat_cost": 2,
         "ability": Ability.PsyShadow(),
         "weakness": EnergyType.DARKNESS,
-        "is_basic": True,
+        "is_basic": False,
         "is_ex": False,
+        "evolves_from": Cards.KIRLIA,
     },
 }
 
@@ -47,6 +77,7 @@ class Card:
         weakness=None,
         is_basic=True,
         is_ex=False,
+        evolves_from=None,
     ):
         self.id = uuid.uuid4()
         self.name = name
@@ -63,6 +94,8 @@ class Card:
         self.is_basic = is_basic
         self.is_ex = is_ex
         self.has_used_ability = False
+        self.evolves_from: Card = evolves_from
+        self.can_evolve = False
 
     def add_condition(self, condition):
         if any(isinstance(cond, condition.__class__) for cond in self.conditions):
@@ -110,6 +143,36 @@ class Card:
 
     def get_total_energy(self):
         return sum(self.energies.values())
+
+    def evolve(self, evolved_card_name: str) -> None:
+        """
+        Evolves this card into the given evolved card.
+
+        Args:
+            evolved_card_name (str): The card to evolve into.
+        """
+        if evolved_card_name not in CARDS_DICT.keys():
+            raise ValueError(f"Card {evolved_card_name} does not exist in CARDS_DICT.")
+
+        evolved_card_info = CARDS_DICT[evolved_card_name]
+
+        if evolved_card_info["evolves_from"].value != self.name:
+            raise ValueError(
+                f"{evolved_card_name.value} cannot evolve from {self.name}"
+            )
+
+        self.name = evolved_card_name.value
+        self.hp = evolved_card_info["hp"] - (self.max_hp - self.hp)
+        self.max_hp = evolved_card_info["hp"]
+        self.type = evolved_card_info["type"]
+        self.attacks = evolved_card_info["attacks"]
+        self.retreat_cost = evolved_card_info["retreat_cost"]
+        self.ability = evolved_card_info["ability"]
+        self.weakness = evolved_card_info["weakness"]
+        self.is_basic = evolved_card_info["is_basic"]
+        self.is_ex = evolved_card_info["is_ex"]
+        self.evolves_from = evolved_card_info["evolves_from"]
+        self.can_evolve = False
 
     def __repr__(self):
         energies_str = ", ".join(
