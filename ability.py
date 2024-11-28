@@ -35,4 +35,4 @@ class Ability:
                     f"{using_card.name} has already used {self.name} ability"
                 )
             target_card.add_energy(EnergyType.PSYCHIC.value)
-            target_card.has_used_ability = True
+            using_card.has_used_ability = True
