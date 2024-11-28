@@ -119,6 +119,7 @@ class Card:
             card.energies[energy] += 1
         else:
             card.energies[energy] = 1
+        print(f"Current energies of {card.name} {card.energies}")
 
     def remove_energy(self, energy_enum):
         energy = energy_enum.value
