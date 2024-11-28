@@ -1,3 +1,11 @@
+import random
+from player import Player
+from attack import Attack
+from action import Action, ActionType
+from typing import List
+import copy
+
+
 class Match:
     """
     A class to represent a match between two players.
@@ -27,12 +35,11 @@ class Match:
         """
         starting_player.set_opponent(second_player)
         second_player.set_opponent(starting_player)
-        self.starting_player = starting_player
-        self.second_player = second_player
+        self.starting_player: Player = starting_player
+        self.second_player: Player = second_player
 
-        self.turn = 0
+        self.turn: int = 0  # The current turn number
         self.game_over = False
-
 
     def start_turn(self):
         """
@@ -51,9 +58,10 @@ class Match:
             active_player = self.starting_player
             non_active_player = self.second_player
         print(
-            f"Turn {self.turn}, {active_player.name}'s turn, {self.starting_player.name} {self.starting_player.points} - {self.second_player.name} {self.second_player.points}"
+            f"\n\nTurn {self.turn}, {active_player.name}'s turn, {self.starting_player.name} {self.starting_player.points} - {self.second_player.name} {self.second_player.points}"
         )
         self.game_over = active_player.start_turn(self)
+
         if self.game_over:
             print()
             print("------ GAME OVER -------")
@@ -61,7 +69,112 @@ class Match:
                 f"{active_player.name} won {active_player.points}-{non_active_player.points}"
             )
             print(f"after {self.turn} turns")
-        return self.game_over
+
+        if self.turn > 100:
+            print()
+            print("Game terminated at turn 1000 due to infinite loop")
+            self.game_over = True
+
+    def play_one_match(self):
+        """
+        Plays one complete match until the game is over.
+        """
+        while not self.game_over:
+            self.start_turn()
+
+    def simulate_turn_actions(self, player: Player) -> List[List[Action]]:
+        """
+        Simulates all possible combinations of actions for this turn.
+
+        Args:
+            match (Match): The current match.
+
+        Returns:
+            List[List[Action]]: A list of all possible sequences of actions.
+        """
+        match_copy = copy.deepcopy(self)
+        match_copy.turn += 1
+
+        player_copy = copy.deepcopy(player)
+
+        player_copy.reset_for_turn(self.turn)
+
+        # Update conditions
+        if player_copy.active_card:
+            player_copy.active_card.update_conditions()
+        elif self.turn > 2:
+            # If active card is knocked out and there are no cards on the bench
+            # Game over
+            if len(player_copy.bench) == 0:
+                raise Exception("Player lost this turn")
+            else:
+                player_copy.set_active_card_from_bench(random.choice(player_copy.bench))
+
+        # Draw card
+        drawn_card = player_copy.deck.draw_card()
+        if drawn_card is not None:
+            player_copy.hand.append(drawn_card)
+
+        all_sequences = []
+        self._simulate_recursive(
+            match_copy,
+            player_copy,
+            current_sequence=[],
+            all_sequences=all_sequences,
+            depth=0,
+        )
+
+        # Print all possible sequences of actions
+        unique_sequences = []
+        seen_sequences = set()
+
+        for sequence in all_sequences:
+            sequence_tuple = tuple(action.name for action in sequence)
+            if sequence_tuple not in seen_sequences:
+                seen_sequences.add(sequence_tuple)
+                unique_sequences.append(sequence)
+
+        return unique_sequences
+
+    @staticmethod
+    def _simulate_recursive(
+        match: "Match",
+        player: "Player",
+        current_sequence: List[Action],
+        all_sequences: List[List[Action]],
+        depth: int,
+    ) -> None:
+        """
+        Recursively simulates actions and collects all possible sequences.
+
+        Args:
+            match (Match): The current match.
+            player (Player): The player whose actions are being simulated.
+            actions (List[Action]): The list of actions to simulate.
+            current_sequence (List[Action]): The current sequence of actions taken.
+            all_sequences (List[List[Action]]): The list to store all possible sequences of actions.
+        """
+
+        if depth > 10:
+            return
+
+        actions = player.gather_actions()
+
+        for action in actions:
+            player_copy = copy.deepcopy(player)
+            new_actions = player_copy.act_and_regather_actions(match, action)
+            new_sequence = current_sequence + [action]
+            if new_actions and player_copy.can_continue:
+                Match._simulate_recursive(
+                    match,
+                    player_copy,
+                    new_sequence,
+                    all_sequences,
+                    depth=depth + 1,
+                )
+            else:
+                # If no new actions, add the current sequence to all_sequences
+                all_sequences.append(new_sequence)
 
     def __repr__(self):
         return f"Match(Players: {self.players}, Deck: {self.deck})"

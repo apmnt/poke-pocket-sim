@@ -1,13 +1,25 @@
-import random
+import random, copy
 from typing import List, Optional, TYPE_CHECKING
+import uuid
 from action import Action, ActionType
-from card import Card
+from card import Card, Cards
 from item import Item
 from supporter import Supporter
-from attack import Attack
+from attack import Attack, EnergyType
 
 if TYPE_CHECKING:
     from deck import Deck
+    from match import Match
+
+"""
+Evaluation of the positions:
+
+Evolving a pokemon = 5
+Dealing damage = damage * 0.1
+Knocking a pokemon out = 25 if normal, 50 if ex
+
+
+"""
 
 
 class Player:
@@ -38,15 +50,17 @@ class Player:
         self.active_card: Optional[Card] = None
         self.points: int = 0
         self.opponent: Optional[Player] = None
-        self.current_energy: Optional[Energy] = None
+        self.current_energy: Optional[EnergyType] = None
         self.has_used_trainer: bool = False
         self.has_added_energy: bool = False
+        self.can_continue: bool = True
+        self.id = uuid.uuid4()
 
     def set_opponent(self, opponent: "Player") -> None:
         self.opponent = opponent
 
     def start_turn(self, match: "Match") -> bool:
-        self.reset_for_turn()
+        self.reset_for_turn(match.turn)
 
         # Update conditions
         if self.active_card:
@@ -76,6 +90,10 @@ class Player:
         for c in self.bench:
             print("\t", c)
 
+        return self.process_action_loop(match=match)
+
+    def process_action_loop(self, match: "Match"):
+
         # Gather actions
         actions = self.gather_actions()
 
@@ -86,41 +104,17 @@ class Player:
             for action in actions:
                 print("\t", action)
             random_action = actions.pop(random.randint(0, len(actions) - 1))
-            can_continue = True
+            self.can_continue = True
         else:
-            can_continue = False
+            self.can_continue = False
 
         # Action loop, act -> gather -> act... until attack or actions run out
-        while can_continue is True:
-            can_continue = random_action.act(self)
-
-            if random_action.action_type == ActionType.SET_ACTIVE_CARD:
-                actions = [
-                    action
-                    for action in actions
-                    if action.action_type != ActionType.SET_ACTIVE_CARD
-                ]
-                if match.turn > 2:
-                    actions = self.gather_actions()
+        actions = [random_action]
+        while self.can_continue is True:
+            if actions:
+                actions = self.act_and_regather_actions(match, random.choice(actions))
             else:
-                if random_action.action_type == ActionType.ADD_ENERGY:
-                    self.has_added_energy = True
-                if random_action.action_type == ActionType.SUPPORTER:
-                    self.has_used_trainer = True
-                    self.remove_item_from_hand(random_action.item_class)
-
-                if random_action.action_type == ActionType.ITEM:
-                    self.remove_item_from_hand(random_action.item_class)
-                actions = self.gather_actions()
-
-            if can_continue and len(actions) > 0:
-                # Print actions
-                print("Possible actions:")
-                for action in actions:
-                    print("\t", action)
-                random_action = actions.pop(random.randint(0, len(actions) - 1))
-            else:
-                can_continue = False
+                self.can_continue = False
 
         if self.opponent.active_card is not None and self.opponent.active_card.hp <= 0:
             print(
@@ -137,13 +131,56 @@ class Player:
             if self.points >= 3:
                 return True
 
-        print()
-        return False
+    def act_and_regather_actions(self, match, random_action):
+
+        self.can_continue = random_action.act(self)
+        actions = []
+
+        if random_action.action_type == ActionType.SET_ACTIVE_CARD:
+            actions = [
+                action
+                for action in actions
+                if action.action_type != ActionType.SET_ACTIVE_CARD
+            ]
+
+            if match.turn > 2:
+                actions = self.gather_actions()
+        else:
+            if random_action.action_type == ActionType.ADD_ENERGY:
+                self.has_added_energy = True
+            if random_action.action_type == ActionType.SUPPORTER:
+                self.has_used_trainer = True
+                self.remove_item_from_hand(random_action.item_class)
+            if random_action.action_type == ActionType.ITEM:
+                self.remove_item_from_hand(random_action.item_class)
+            actions = self.gather_actions()
+
+        if self.can_continue and len(actions) > 0:
+            # Print actions
+            print("Possible actions:")
+            for action in actions:
+                print("\t", action)
+            random_action = actions.pop(random.randint(0, len(actions) - 1))
+        else:
+            self.can_continue = False
+
+        return actions
 
     def remove_item_from_hand(self, item_class: type) -> None:
-        self.hand.remove(
-            next(card for card in self.hand if isinstance(card, item_class))
-        )
+        try:
+            card_to_remove = next(
+                card for card in self.hand if isinstance(card, item_class)
+            )
+            self.hand.remove(card_to_remove)
+        except StopIteration:
+            raise ValueError(f"No card of type {item_class} found in hand.")
+
+    @staticmethod
+    def remove_card_from_hand(player, card_id: uuid) -> None:
+        card = Player.find_by_id(player.hand, card_id)
+        if not card:
+            raise ValueError(f"Card not found in hand.")
+        player.hand.remove(card)
 
     def gather_actions(self) -> List[Action]:
         actions: List[Action] = []
@@ -203,12 +240,12 @@ class Player:
                             actions.append(
                                 Action(
                                     f"Evolve {card_to_evolve.name} to {card.name}",
-                                    lambda card_to_evolve=card_to_evolve, evolution_card=card: self.evolve_and_remove_from_hand(
-                                        card_to_evolve, evolution_card
+                                    lambda player, card_to_evolve=card_to_evolve, evolution_card=card: Player.evolve_and_remove_from_hand(
+                                        player, card_to_evolve, evolution_card
                                     ),
                                     ActionType.EVOLVE,
-                        )
-                    )
+                                )
+                            )
 
             # ABILITY
             for card in self.bench + [self.active_card]:
@@ -241,7 +278,7 @@ class Player:
                 actions.append(
                     Action(
                         f"Retreat active card ({self.active_card})",
-                        self.retreat,
+                        Player.retreat,
                         ActionType.FUNCTION,
                     )
                 )
@@ -252,7 +289,9 @@ class Player:
                     actions.append(
                         Action(
                             f"Add {card.name} to bench",
-                            lambda card=card: self.add_card_to_bench(card),
+                            lambda player, card_id=card.id: Player.add_card_to_bench(
+                                player, card_id
+                            ),
                             ActionType.ADD_CARD_TO_BENCH,
                         )
                     )
@@ -262,8 +301,8 @@ class Player:
                 actions.append(
                     Action(
                         f"Add {self.current_energy} energy to {self.active_card}",
-                        lambda card=self.active_card: card.add_energy(
-                            self.current_energy
+                        lambda card=self.active_card, energy=self.current_energy: Card.add_energy(
+                            card, energy
                         ),
                         ActionType.ADD_ENERGY,
                     )
@@ -272,30 +311,41 @@ class Player:
                     actions.append(
                         Action(
                             f"Add {self.current_energy} energy to {card}",
-                            lambda card=card: card.add_energy(self.current_energy),
+                            lambda card=card, energy=self.current_energy: Card.add_energy(
+                                card, energy
+                            ),
                             ActionType.ADD_ENERGY,
                         )
                     )
 
         # SET AN ACTIVE CARD
         else:
-            for card in self.hand:
-                if isinstance(card, Card) and card.is_basic:
-                    actions.append(
-                        Action(
-                            f"Set {card.name} as active card",
-                            lambda card=card: self.set_active_card_from_hand(card),
-                            ActionType.SET_ACTIVE_CARD,
+            if not self.active_card:
+                for card in self.hand:
+                    if isinstance(card, Card) and card.is_basic:
+                        actions.append(
+                            Action(
+                                f"Set {card.name} as active card",
+                                lambda player, card_id=card.id: Player.set_active_card_from_hand(
+                                    player, card_id
+                                ),
+                                ActionType.SET_ACTIVE_CARD,
+                            )
                         )
-                    )
         return actions
 
-    def retreat(self) -> None:
-        if self.active_card.get_total_energy() < self.active_card.retreat_cost:
-            raise Exception(f"Not enough energy to retreat {self.active_card.name}")
+    @staticmethod
+    def evolve_and_remove_from_hand(player, card_to_evolve: Card, evolution_card):
+        card_to_evolve.evolve(Cards[evolution_card.name.replace(" ", "_").upper()])
+        Player.remove_card_from_hand(player, evolution_card.id)
 
-        self.active_card.remove_retreat_cost_energy()
-        self.move_active_card_to_bench()
+    @staticmethod
+    def retreat(player) -> None:
+        if player.active_card.get_total_energy() < player.active_card.retreat_cost:
+            raise Exception(f"Not enough energy to retreat {player.active_card.name}")
+
+        player.active_card.remove_retreat_cost_energy()
+        player.move_active_card_to_bench()
 
     def move_active_card_to_bench(self) -> None:
         if self.active_card is None:
@@ -315,29 +365,47 @@ class Player:
             f"{old_active_card.name} retreated, {self.active_card.name} set as active"
         )
 
-    def set_active_card_from_hand(self, card: Card) -> None:
-        print(f"Setting active card from hand to {card.name}")
-        self.active_card = card
-        self.hand.remove(card)
+    @staticmethod
+    def set_active_card_from_hand(player: "Player", card_id: uuid) -> None:
+        card = Player.find_by_id(player.hand, card_id)
+        if card in player.hand:
+            print(f"Setting active card from hand to {card.name}")
+            player.active_card = card
+            player.hand.remove(card)
+        else:
+            raise ValueError(f"Card {card.name} not found in hand. Hand: {player.hand}")
 
     def set_active_card_from_bench(self, card: Card) -> None:
         print(f"Setting active card from bench to {card.name}")
         self.active_card = card
         self.bench.remove(card)
 
-    def add_card_to_bench(self, card: Card) -> None:
-        if card not in self.hand:
+    @staticmethod
+    def add_card_to_bench(player: "Player", card_id: uuid) -> None:
+        card = Player.find_by_id(player.hand, card_id)
+        if not card:
             raise Exception(f"Card {card.name} not in hand")
-        if len(self.bench) < 3:
-            self.bench.append(card)
-            self.hand.remove(card)
+        if len(player.bench) < 3:
+            player.bench.append(card)
+            player.hand.remove(card)
 
-    def reset_for_turn(self) -> None:
+    def reset_for_turn(self, turn: int) -> None:
         self.has_added_energy = False
         self.has_used_trainer = False
         if self.active_card:
             for card in self.bench + [self.active_card]:
+                # Reset the ability property for each card
                 card.has_used_ability = False
+                if turn > 2:
+                    # Set this property to true, so the turn after placing the card they can be evolved
+                    card.can_evolve = True
+
+    @staticmethod
+    def find_by_id(objects, target_id):
+        for obj in objects:
+            if obj.id == target_id:
+                return obj
+        return None
 
     def __repr__(self) -> str:
         return f"Player({self.name}, Hand: {self.hand}, Active Card: {self.active_card}, Bench: {self.bench}, Deck: {self.deck}, Energy Queue: {self.energy_queue}, Points: {self.points}, Has Used Trainer This Turn: {self.has_used_trainer})"

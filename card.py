@@ -113,11 +113,12 @@ class Card:
             condition for condition in self.conditions if not condition.rid()
         ]
 
-    def add_energy(self, energy):
-        if energy in self.energies:
-            self.energies[energy] += 1
+    @staticmethod
+    def add_energy(card, energy):
+        if energy in card.energies:
+            card.energies[energy] += 1
         else:
-            self.energies[energy] = 1
+            card.energies[energy] = 1
 
     def remove_energy(self, energy_enum):
         energy = energy_enum.value

@@ -27,20 +27,16 @@ class Action:
 
     def act(self, player):
         print(f"Acting: {self.name}")
-        if self.action_type == ActionType.ATTACK:
-            self.function(player)
-        elif self.action_type == ActionType.ITEM:
+        if self.action_type == ActionType.ITEM:
             for card in player.hand:
                 if isinstance(card, type(self.item_class)):
                     player.hand.remove(card)
                     break
             self.function()
-        elif self.action_type == ActionType.ADD_CARD_TO_BENCH:
-            self.function(player)        
-        elif self.action_type == ActionType.FUNCTION:
-            self.function(player)
-        else:
+        elif self.action_type == ActionType.ADD_ENERGY:
             self.function()
+        else:
+            self.function(player)
         return self.can_continue_turn
 
     def __repr__(self):
