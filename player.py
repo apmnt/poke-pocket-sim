@@ -407,5 +407,29 @@ class Player:
                 return obj
         return None
 
+    @staticmethod
+    def evaluate_player(player: "Player") -> int:
+        points = 0
+        points += player.points * 25
+        points += Player.get_damage_dealt_to_cards(player.opponent) * 0.1
+        points += Player.get_number_of_evolved_cards(player) * 5
+        return points
+
+    @staticmethod
+    def get_damage_dealt_to_cards(player: "Player") -> int:
+        damage_dealt = 0
+        for card in player.bench + [player.active_card]:
+            damage_dealt += card.max_hp - card.hp
+        return damage_dealt
+
+    @staticmethod
+    def get_number_of_evolved_cards(player: "Player") -> int:
+        evolved_cards = 0
+        for card in player.bench + [player.active_card]:
+            card: Card
+            if not card.is_basic:
+                evolved_cards += 1
+        return evolved_cards
+
     def __repr__(self) -> str:
         return f"Player({self.name}, Hand: {self.hand}, Active Card: {self.active_card}, Bench: {self.bench}, Deck: {self.deck}, Energy Queue: {self.energy_queue}, Points: {self.points}, Has Used Trainer This Turn: {self.has_used_trainer})"

@@ -2,7 +2,7 @@ import random
 from player import Player
 from attack import Attack
 from action import Action, ActionType
-from typing import List
+from typing import List, Tuple
 import copy
 
 
@@ -115,7 +115,7 @@ class Match:
         if drawn_card is not None:
             player_copy.hand.append(drawn_card)
 
-        all_sequences = []
+        all_sequences: List[Tuple[int, List[Action]]] = []
         self._simulate_recursive(
             match_copy,
             player_copy,
@@ -129,7 +129,7 @@ class Match:
         seen_sequences = set()
 
         for sequence in all_sequences:
-            sequence_tuple = tuple(action.name for action in sequence)
+            sequence_tuple = tuple(action.name for action in sequence[1])
             if sequence_tuple not in seen_sequences:
                 seen_sequences.add(sequence_tuple)
                 unique_sequences.append(sequence)
@@ -141,7 +141,7 @@ class Match:
         match: "Match",
         player: "Player",
         current_sequence: List[Action],
-        all_sequences: List[List[Action]],
+        all_sequences: List[Tuple[int, List[Action]]],
         depth: int,
     ) -> None:
         """
@@ -174,7 +174,8 @@ class Match:
                 )
             else:
                 # If no new actions, add the current sequence to all_sequences
-                all_sequences.append(new_sequence)
+                evaluation = Player.evaluate_player(player_copy)
+                all_sequences.append((evaluation, new_sequence))
 
     def __repr__(self):
         return f"Match(Players: {self.players}, Deck: {self.deck})"
