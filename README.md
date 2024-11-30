@@ -6,6 +6,8 @@ Currently features include almost every mechanic. Most of the implementations ne
 
 Currently under development and featuring only separate files, but it will soon be available as a library in PyPI.
 
+Welcoming collaboration! If you clone this repo and find something that should be added or doesn't work (most things do not work flawlessly as of right now), just [create an issue](https://github.com/apmnt/poke-pocket-sim/issues)!
+
 Roadmap:
 
 - [x] Add attacks, cards and basic turn mechanics
