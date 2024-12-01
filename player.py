@@ -1,5 +1,5 @@
 import random, copy
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING, Dict, Any
 import uuid
 from action import Action, ActionType
 from card import Card, Cards
@@ -430,6 +430,21 @@ class Player:
             if not card.is_basic:
                 evolved_cards += 1
         return evolved_cards
+
+def serialize(self: Player) -> Dict[str, Any]:
+    return {
+        "name": self.name,
+        "hand": [card.serialize() for card in self.hand],
+        "bench": [card.serialize() for card in self.bench],
+        "active_card": self.active_card.serialize() if self.active_card else None,
+        "deck": [card.serialize() for card in self.deck.cards],  # Assuming deck has a list of cards
+        "discard_pile": [card.serialize() for card in self.discard_pile],
+        "prizes": [card.serialize() for card in self.prizes],
+        "has_used_ability": self.has_used_ability,
+        "has_used_trainer": self.has_used_trainer,
+        "turn": self.turn,
+        "conditions": [condition.serialize() for condition in self.conditions]  # Assuming conditions have a serialize method
+    }
 
     def __repr__(self) -> str:
         return f"Player({self.name}, Hand: {self.hand}, Active Card: {self.active_card}, Bench: {self.bench}, Deck: {self.deck}, Energy Queue: {self.energy_queue}, Points: {self.points}, Has Used Trainer This Turn: {self.has_used_trainer})"
