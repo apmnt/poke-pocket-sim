@@ -38,6 +38,15 @@ class Action:
         else:
             self.function(player)
         return self.can_continue_turn
+    
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "action_type": self.action_type.name,
+            "can_continue_turn": self.can_continue_turn,
+            "item_class": self.item_class.__name__ if self.item_class else None,
+        }
 
     def __repr__(self):
         return f"Action(Name: {self.name}, Type: {self.action_type})"
+        
