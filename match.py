@@ -2,7 +2,8 @@ import random
 from player import Player
 from attack import Attack
 from action import Action, ActionType
-from typing import List, Tuple
+from data_collector import DataCollector
+from typing import List, Tuple, Dict, Any
 import copy
 
 
@@ -25,7 +26,9 @@ class Match:
         Returns a string representation of the match.
     """
 
-    def __init__(self, starting_player, second_player):
+    def __init__(
+        self, starting_player: Player, second_player: Player, data_collector=None
+    ):
         """
         Initializes a match between two players.
 
@@ -37,6 +40,8 @@ class Match:
         second_player.set_opponent(starting_player)
         self.starting_player: Player = starting_player
         self.second_player: Player = second_player
+
+        self.data_collector: DataCollector = data_collector
 
         self.turn: int = 0  # The current turn number
         self.game_over = False
@@ -60,7 +65,12 @@ class Match:
         print(
             f"\n\nTurn {self.turn}, {active_player.name}'s turn, {self.starting_player.name} {self.starting_player.points} - {self.second_player.name} {self.second_player.points}"
         )
+
         self.game_over = active_player.start_turn(self)
+
+        # DATA COLLECTOR: Save the state after and collect the properties
+        self.data_collector.match_state_after = self.serialize()
+        self.data_collector.add_data_from_properties()
 
         if self.game_over:
             print()
@@ -81,6 +91,15 @@ class Match:
         """
         while not self.game_over:
             self.start_turn()
+        self.data_collector.save_to_csv()
+
+    def serialize(self) -> Dict[str, Any]:
+        return {
+            "turn": self.turn,
+            "player1": self.starting_player.serialize(),
+            "player2": self.second_player.serialize(),
+            # Add other relevant match state data
+        }
 
     def simulate_turn_actions(self, player: Player) -> List[List[Action]]:
         """

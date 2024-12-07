@@ -1,5 +1,5 @@
 import random, copy
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING, Dict, Any
 import uuid
 from action import Action, ActionType
 from card import Card, Cards
@@ -42,7 +42,7 @@ class Player:
     def __init__(self, name: str, deck: "Deck"):
         self.name: str = name
         self.deck: "Deck" = deck
-
+        self.discard_pile: List = []
         self.hand: List[Card] = [
             self.deck.draw_card() for _ in range(min(5, len(self.deck.cards)))
         ]
@@ -80,6 +80,11 @@ class Player:
 
         # Draw energy
         self.current_energy = self.deck.draw_energy()
+
+        # DATA COLLECTION: turn number, player name, state before turn
+        match.data_collector.turn = match.turn
+        match.data_collector.active_player = self.name
+        match.data_collector.match_state_before = match.serialize()
 
         # Prints
         print(f"{self.name} active card: {self.active_card}")
@@ -131,9 +136,10 @@ class Player:
             if self.points >= 3:
                 return True
 
-    def act_and_regather_actions(self, match, random_action):
+    def act_and_regather_actions(self, match: "Match", random_action: "Action"):
 
         self.can_continue = random_action.act(self)
+        match.data_collector.actions_taken.append(random_action.serialize())
         actions = []
 
         if random_action.action_type == ActionType.SET_ACTIVE_CARD:
@@ -172,6 +178,7 @@ class Player:
                 card for card in self.hand if isinstance(card, item_class)
             )
             self.hand.remove(card_to_remove)
+            self.discard_pile.append(card_to_remove)
         except StopIteration:
             raise ValueError(f"No card of type {item_class} found in hand.")
 
@@ -430,6 +437,18 @@ class Player:
             if not card.is_basic:
                 evolved_cards += 1
         return evolved_cards
+
+    def serialize(self: "Player") -> Dict[str, Any]:
+        return {
+            "name": self.name,
+            "hand": [card.serialize() for card in self.hand],
+            "bench": [card.serialize() for card in self.bench],
+            "active_card": self.active_card.serialize() if self.active_card else None,
+            "deck": [card.serialize() for card in self.deck.cards],
+            "discard_pile": [card.serialize() for card in self.discard_pile],
+            "points": self.points,
+            "has_used_trainer": self.has_used_trainer,
+        }
 
     def __repr__(self) -> str:
         return f"Player({self.name}, Hand: {self.hand}, Active Card: {self.active_card}, Bench: {self.bench}, Deck: {self.deck}, Energy Queue: {self.energy_queue}, Points: {self.points}, Has Used Trainer This Turn: {self.has_used_trainer})"
