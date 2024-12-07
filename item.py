@@ -6,6 +6,9 @@ class Item:
         def card_able_to_use(card):
             return card.hp != card.max_hp
 
+        def serialize():
+            return "Potion"
+
         def use(card):
             card.hp = min(card.hp + 20, card.max_hp)
             restored_amount = min(20, card.max_hp - card.hp)
