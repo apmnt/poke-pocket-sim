@@ -83,12 +83,12 @@ class Card:
         self.name = name
         self.max_hp = hp
         self.hp = hp
-        self.type = type
+        self.type: EnergyType = type
         self.energies = {}
         self.attacks = attacks
         self.retreat_cost = retreat_cost
         self.modifiers = []
-        self.ability = ability
+        self.ability: Ability = ability
         self.conditions = []
         self.weakness = weakness
         self.is_basic = is_basic
@@ -188,19 +188,19 @@ class Card:
             "name": self.name,
             "max_hp": self.max_hp,
             "hp": self.hp,
-            "type": self.type.name,
+            "type": self.type.value,
             "energies": self.energies,
             "attacks": [attack.__name__ for attack in self.attacks],
             "retreat_cost": self.retreat_cost,
             "ability": self.ability.name if self.ability else None,
-            "conditions": [condition.serialize() for condition in self.conditions],  # Assuming conditions have a serialize method
+            "conditions": [condition.serialize() for condition in self.conditions],
             "weakness": self.weakness.name if self.weakness else None,
             "is_basic": self.is_basic,
             "is_ex": self.is_ex,
             "has_used_ability": self.has_used_ability,
             "evolves_from": self.evolves_from.name if self.evolves_from else None,
             "can_evolve": self.can_evolve,
-        }        
+        }
 
     @staticmethod
     def create_card(card_enum: Cards):
