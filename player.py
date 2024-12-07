@@ -42,7 +42,7 @@ class Player:
     def __init__(self, name: str, deck: "Deck"):
         self.name: str = name
         self.deck: "Deck" = deck
-
+        self.discard_pile: List = []
         self.hand: List[Card] = [
             self.deck.draw_card() for _ in range(min(5, len(self.deck.cards)))
         ]
@@ -172,6 +172,7 @@ class Player:
                 card for card in self.hand if isinstance(card, item_class)
             )
             self.hand.remove(card_to_remove)
+            self.discard_pile.append(card_to_remove)
         except StopIteration:
             raise ValueError(f"No card of type {item_class} found in hand.")
 
