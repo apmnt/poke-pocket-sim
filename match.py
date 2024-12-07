@@ -26,7 +26,9 @@ class Match:
         Returns a string representation of the match.
     """
 
-    def __init__(self, starting_player, second_player, data_collector=None):
+    def __init__(
+        self, starting_player: Player, second_player: Player, data_collector=None
+    ):
         """
         Initializes a match between two players.
 
@@ -63,7 +65,12 @@ class Match:
         print(
             f"\n\nTurn {self.turn}, {active_player.name}'s turn, {self.starting_player.name} {self.starting_player.points} - {self.second_player.name} {self.second_player.points}"
         )
+
         self.game_over = active_player.start_turn(self)
+
+        # DATA COLLECTOR: Save the state after and collect the properties
+        self.data_collector.match_state_after = self.serialize()
+        self.data_collector.add_data_from_properties()
 
         if self.game_over:
             print()
@@ -84,13 +91,13 @@ class Match:
         """
         while not self.game_over:
             self.start_turn()
+        self.data_collector.save_to_csv()
 
-    def serialize_match_state(self) -> Dict[str, Any]:
-        # Implement serialization of the match state
+    def serialize(self) -> Dict[str, Any]:
         return {
             "turn": self.turn,
             "player1": self.starting_player.serialize(),
-            "player2": self.player2.serialize(),
+            "player2": self.second_player.serialize(),
             # Add other relevant match state data
         }
 
