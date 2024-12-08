@@ -104,7 +104,29 @@ class Match:
             # Add other relevant match state data
         }
 
-    def simulate_turn_actions(self, player: Player) -> List[List[Action]]:
+    def get_best_actions_for_player(self, player: Player) -> List[Action]:
+        """
+        Determines the best sequence of actions for a given player by simulating all possible turn actions
+        and evaluating their outcomes.
+
+        Args:
+            player (Player): The player for whom the best actions are being determined.
+
+        Returns:
+            List[Action]: The sequence of actions that has the highest evaluation score.
+        """
+        all_actions = self.simulate_turn_actions(player)
+        best_evaluation = float("-inf")
+        best_sequence = []
+
+        for evaluation, sequence, _ in all_actions:
+            if evaluation > best_evaluation:
+                best_evaluation = evaluation
+                best_sequence = sequence
+
+        return best_sequence
+
+    def simulate_turn_actions(self, player: Player) -> List[Tuple[int, List[Action]]]:
         """
         Simulates all possible combinations of actions for this turn.
 
