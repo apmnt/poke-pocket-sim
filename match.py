@@ -134,12 +134,14 @@ class Match:
             match (Match): The current match.
 
         Returns:
-            List[List[Action]]: A list of all possible sequences of actions.
+            List[Tuple[int, List[Action]]]: A list of all possible sequences of actions.
         """
         match_copy = copy.deepcopy(self)
         match_copy.turn += 1
 
         player_copy = copy.deepcopy(player)
+        player_copy.print_actions = False
+        player_copy.evaluate_actions = False
 
         player_copy.reset_for_turn(self.turn)
 
