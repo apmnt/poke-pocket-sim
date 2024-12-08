@@ -184,11 +184,12 @@ class Match:
 
         for action in actions:
             player_copy = copy.deepcopy(player)
-            new_actions = player_copy.act_and_regather_actions(match, action)
+            match_copy = copy.deepcopy(match)
+            new_actions = player_copy.act_and_regather_actions(match_copy, action)
             new_sequence = current_sequence + [action]
             if new_actions and player_copy.can_continue:
                 Match._simulate_recursive(
-                    match,
+                    match_copy,
                     player_copy,
                     new_sequence,
                     all_sequences,
@@ -197,7 +198,7 @@ class Match:
             else:
                 # If no new actions, add the current sequence to all_sequences
                 evaluation = Player.evaluate_player(player_copy)
-                all_sequences.append((evaluation, new_sequence))
+                all_sequences.append((evaluation, new_sequence, depth))
 
     def __repr__(self):
         return f"Match(Players: {self.players}, Deck: {self.deck})"
