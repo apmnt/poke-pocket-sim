@@ -395,7 +395,7 @@ class Player:
             raise ValueError("Card to evolve or evolution card not found.")
 
     @staticmethod
-    def retreat(player) -> None:
+    def retreat(player: "Player") -> None:
         if player.active_card.get_total_energy() < player.active_card.retreat_cost:
             raise Exception(f"Not enough energy to retreat {player.active_card.name}")
 
