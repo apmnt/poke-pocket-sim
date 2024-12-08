@@ -58,6 +58,10 @@ class Player:
         self.evaluate_actions = False
         self.print_actions = True
 
+    @property
+    def active_card_and_bench(self) -> List[Card]:
+        return self.bench + [self.active_card]
+
     def set_opponent(self, opponent: "Player") -> None:
         self.opponent = opponent
 
@@ -205,7 +209,7 @@ class Player:
             # ITEM
             for card in self.hand:
                 if isinstance(card, Item.Potion):
-                    for pokemon in self.bench + [self.active_card]:
+                    for pokemon in self.active_card_and_bench:
                         if Item.Potion.card_able_to_use(pokemon):
                             actions.append(
                                 Action(
@@ -221,7 +225,7 @@ class Player:
                     break
 
                 if isinstance(card, Supporter.Erika):
-                    for pokemon in self.bench + [self.active_card]:
+                    for pokemon in self.active_card_and_bench:
                         if Supporter.Erika.card_able_to_use(pokemon):
                             actions.append(
                                 Action(
@@ -247,7 +251,7 @@ class Player:
             # EVOLUTIONS
             for card in self.hand:
                 if isinstance(card, Card) and card.evolves_from is not None:
-                    for card_to_evolve in self.bench + [self.active_card]:
+                    for card_to_evolve in self.active_card_and_bench:
                         if (
                             card_to_evolve
                             and card.evolves_from.value is card_to_evolve.name
@@ -264,7 +268,7 @@ class Player:
                             )
 
             # ABILITY
-            for card in self.bench + [self.active_card]:
+            for card in self.active_card_and_bench:
                 if (
                     card.ability
                     and not card.has_used_ability
@@ -411,7 +415,7 @@ class Player:
         self.has_added_energy = False
         self.has_used_trainer = False
         if self.active_card:
-            for card in self.bench + [self.active_card]:
+            for card in self.active_card_and_bench:
                 # Reset the ability property for each card
                 card.has_used_ability = False
                 if turn > 2:
@@ -436,14 +440,16 @@ class Player:
     @staticmethod
     def get_damage_dealt_to_cards(player: "Player") -> int:
         damage_dealt = 0
-        for card in player.bench + [player.active_card]:
+        if player.active_card is None:
+            return 0
+        for card in player.active_card_and_bench:
             damage_dealt += card.max_hp - card.hp
         return damage_dealt
 
     @staticmethod
     def get_number_of_evolved_cards(player: "Player") -> int:
         evolved_cards = 0
-        for card in player.bench + [player.active_card]:
+        for card in player.active_card_and_bench:
             card: Card
             if not card.is_basic:
                 evolved_cards += 1
