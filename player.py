@@ -131,9 +131,10 @@ class Player:
                 self.can_continue = False
 
         if self.opponent.active_card is not None and self.opponent.active_card.hp <= 0:
-            print(
-                f"{self.opponent.name}'s {self.opponent.active_card.name} knocked out!"
-            )
+            if self.print_actions:
+                print(
+                    f"{self.opponent.name}'s {self.opponent.active_card.name} knocked out!"
+                )
 
             if self.opponent.active_card.is_ex:
                 self.points += 2
