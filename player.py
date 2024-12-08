@@ -320,21 +320,16 @@ class Player:
 
             # ADD ENERGY
             if self.has_added_energy is False:
-                actions.append(
-                    Action(
-                        f"Add {self.current_energy} energy to {self.active_card}",
-                        lambda card=self.active_card, energy=self.current_energy: Card.add_energy(
-                            card, energy
-                        ),
-                        ActionType.ADD_ENERGY,
-                    )
-                )
-                for card in self.bench:
+                for card in self.active_card_and_bench:
                     actions.append(
                         Action(
-                            f"Add {self.current_energy} energy to {card}",
-                            lambda card=card, energy=self.current_energy: Card.add_energy(
-                                card, energy
+                            f"Add {self.current_energy} energy to {card.name}",
+                            lambda player=self, card_id=card.id, energy=self.current_energy: Card.add_energy(
+                                player,
+                                Player.find_by_id(
+                                    player.active_card_and_bench, card_id
+                                ),
+                                energy,
                             ),
                             ActionType.ADD_ENERGY,
                         )
