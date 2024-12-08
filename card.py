@@ -114,12 +114,13 @@ class Card:
         ]
 
     @staticmethod
-    def add_energy(card, energy):
+    def add_energy(player: "Player", card: "Card", energy):
         if energy in card.energies:
             card.energies[energy] += 1
         else:
             card.energies[energy] = 1
-        print(f"Current energies of {card.name} {card.energies}")
+        if player.print_actions:
+            print(f"Current energies of {card.name} {card.energies}")
 
     def remove_energy(self, energy_enum):
         energy = energy_enum.value

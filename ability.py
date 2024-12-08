@@ -43,5 +43,5 @@ class Ability:
                 )
             from card import Card
 
-            Card.add_energy(target_card, EnergyType.PSYCHIC.value)
+            Card.add_energy(player, target_card, EnergyType.PSYCHIC.value)
             using_card.has_used_ability = True

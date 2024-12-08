@@ -55,6 +55,12 @@ class Player:
         self.has_added_energy: bool = False
         self.can_continue: bool = True
         self.id = uuid.uuid4()
+        self.evaluate_actions = False
+        self.print_actions = True
+
+    @property
+    def active_card_and_bench(self) -> List[Card]:
+        return self.bench + [self.active_card]
 
     def set_opponent(self, opponent: "Player") -> None:
         self.opponent = opponent
@@ -82,18 +88,20 @@ class Player:
         self.current_energy = self.deck.draw_energy()
 
         # DATA COLLECTION: turn number, player name, state before turn
-        match.data_collector.turn = match.turn
-        match.data_collector.active_player = self.name
-        match.data_collector.match_state_before = match.serialize()
+        if match.data_collector:
+            match.data_collector.turn = match.turn
+            match.data_collector.active_player = self.name
+            match.data_collector.match_state_before = match.serialize()
 
         # Prints
-        print(f"{self.name} active card: {self.active_card}")
-        print(f"{self.name} hand: ")
-        for c in self.hand:
-            print("\t", c)
-        print(f"{self.name} bench: ")
-        for c in self.bench:
-            print("\t", c)
+        if self.print_actions:
+            print(f"{self.name} active card: {self.active_card}")
+            print(f"{self.name} hand: ")
+            for c in self.hand:
+                print("\t", c)
+            print(f"{self.name} bench: ")
+            for c in self.bench:
+                print("\t", c)
 
         return self.process_action_loop(match=match)
 
@@ -105,26 +113,55 @@ class Player:
         # Do random action
         if len(actions) > 0:
             # Print actions
-            print("Possible actions:")
-            for action in actions:
-                print("\t", action)
-            random_action = actions.pop(random.randint(0, len(actions) - 1))
+            if self.print_actions:
+                print("Possible actions:")
+                for action in actions:
+                    print("\t", action)
+
+            # SELECT ACTION:
+            if self.evaluate_actions:
+                best_actions = match.get_best_actions_for_player(player=self)
+                random_action = None
+            else:
+                random_action = actions.pop(random.randint(0, len(actions) - 1))
+                actions = [random_action]
             self.can_continue = True
         else:
             self.can_continue = False
 
         # Action loop, act -> gather -> act... until attack or actions run out
-        actions = [random_action]
         while self.can_continue is True:
-            if actions:
-                actions = self.act_and_regather_actions(match, random.choice(actions))
+            if self.evaluate_actions:
+
+                # Select best action
+                if best_actions:
+
+                    # TODO: for some reason if the actions are collected from act_and_regather_actions,
+                    # all the actions are not there and find_action will not find the best action.
+                    # This is why they are gathered here twice.
+                    actions = self.gather_actions()
+                    best_action = Action.find_action(actions, best_actions[0])
+                    self.act_and_regather_actions(match, best_action)
+
+                    best_actions.pop(0)
+                else:
+                    self.can_continue = False
+
             else:
-                self.can_continue = False
+
+                # Select random action
+                if actions:
+                    actions = self.act_and_regather_actions(
+                        match, random.choice(actions)
+                    )
+                else:
+                    self.can_continue = False
 
         if self.opponent.active_card is not None and self.opponent.active_card.hp <= 0:
-            print(
-                f"{self.opponent.name}'s {self.opponent.active_card.name} knocked out!"
-            )
+            if self.print_actions:
+                print(
+                    f"{self.opponent.name}'s {self.opponent.active_card.name} knocked out!"
+                )
 
             if self.opponent.active_card.is_ex:
                 self.points += 2
@@ -139,7 +176,10 @@ class Player:
     def act_and_regather_actions(self, match: "Match", random_action: "Action"):
 
         self.can_continue = random_action.act(self)
-        match.data_collector.actions_taken.append(random_action.serialize())
+
+        # DATA COLLECTION: Collect actions
+        if match.data_collector:
+            match.data_collector.actions_taken.append(random_action.serialize())
         actions = []
 
         if random_action.action_type == ActionType.SET_ACTIVE_CARD:
@@ -163,9 +203,10 @@ class Player:
 
         if self.can_continue and len(actions) > 0:
             # Print actions
-            print("Possible actions:")
-            for action in actions:
-                print("\t", action)
+            if self.print_actions:
+                print("Possible actions:")
+                for action in actions:
+                    print("\t", action)
             random_action = actions.pop(random.randint(0, len(actions) - 1))
         else:
             self.can_continue = False
@@ -196,7 +237,7 @@ class Player:
             # ITEM
             for card in self.hand:
                 if isinstance(card, Item.Potion):
-                    for pokemon in self.bench + [self.active_card]:
+                    for pokemon in self.active_card_and_bench:
                         if Item.Potion.card_able_to_use(pokemon):
                             actions.append(
                                 Action(
@@ -212,7 +253,7 @@ class Player:
                     break
 
                 if isinstance(card, Supporter.Erika):
-                    for pokemon in self.bench + [self.active_card]:
+                    for pokemon in self.active_card_and_bench:
                         if Supporter.Erika.card_able_to_use(pokemon):
                             actions.append(
                                 Action(
@@ -238,24 +279,26 @@ class Player:
             # EVOLUTIONS
             for card in self.hand:
                 if isinstance(card, Card) and card.evolves_from is not None:
-                    for card_to_evolve in self.bench + [self.active_card]:
+                    for card_to_evolve in self.active_card_and_bench:
                         if (
                             card_to_evolve
-                            and card.evolves_from.value is card_to_evolve.name
+                            and card.evolves_from.value == card_to_evolve.name
                             and card_to_evolve.can_evolve
                         ):
                             actions.append(
                                 Action(
                                     f"Evolve {card_to_evolve.name} to {card.name}",
-                                    lambda player, card_to_evolve=card_to_evolve, evolution_card=card: Player.evolve_and_remove_from_hand(
-                                        player, card_to_evolve, evolution_card
+                                    lambda player=self, card_to_evolve_id=card_to_evolve.id, evolution_card_id=card.id: Player.evolve_and_remove_from_hand(
+                                        player,
+                                        card_to_evolve_id,
+                                        evolution_card_id,
                                     ),
                                     ActionType.EVOLVE,
                                 )
                             )
 
             # ABILITY
-            for card in self.bench + [self.active_card]:
+            for card in self.active_card_and_bench:
                 if (
                     card.ability
                     and not card.has_used_ability
@@ -305,21 +348,16 @@ class Player:
 
             # ADD ENERGY
             if self.has_added_energy is False:
-                actions.append(
-                    Action(
-                        f"Add {self.current_energy} energy to {self.active_card}",
-                        lambda card=self.active_card, energy=self.current_energy: Card.add_energy(
-                            card, energy
-                        ),
-                        ActionType.ADD_ENERGY,
-                    )
-                )
-                for card in self.bench:
+                for card in self.active_card_and_bench:
                     actions.append(
                         Action(
-                            f"Add {self.current_energy} energy to {card}",
-                            lambda card=card, energy=self.current_energy: Card.add_energy(
-                                card, energy
+                            f"Add {self.current_energy} energy to {card.name}",
+                            lambda player=self, card_id=card.id, energy=self.current_energy: Card.add_energy(
+                                player,
+                                Player.find_by_id(
+                                    player.active_card_and_bench, card_id
+                                ),
+                                energy,
                             ),
                             ActionType.ADD_ENERGY,
                         )
@@ -342,12 +380,22 @@ class Player:
         return actions
 
     @staticmethod
-    def evolve_and_remove_from_hand(player, card_to_evolve: Card, evolution_card):
-        card_to_evolve.evolve(Cards[evolution_card.name.replace(" ", "_").upper()])
-        Player.remove_card_from_hand(player, evolution_card.id)
+    def evolve_and_remove_from_hand(
+        player: "Player", card_to_evolve_id: uuid, evolution_card_id: uuid
+    ):
+        card_to_evolve = Player.find_by_id(
+            player.active_card_and_bench, card_to_evolve_id
+        )
+        evolution_card = Player.find_by_id(player.hand, evolution_card_id)
+
+        if card_to_evolve and evolution_card:
+            card_to_evolve.evolve(Cards[evolution_card.name.replace(" ", "_").upper()])
+            Player.remove_card_from_hand(player, evolution_card.id)
+        else:
+            raise ValueError("Card to evolve or evolution card not found.")
 
     @staticmethod
-    def retreat(player) -> None:
+    def retreat(player: "Player") -> None:
         if player.active_card.get_total_energy() < player.active_card.retreat_cost:
             raise Exception(f"Not enough energy to retreat {player.active_card.name}")
 
@@ -367,23 +415,25 @@ class Player:
             [card for card in self.bench if card != old_active_card]
         )
         self.bench.remove(self.active_card)
-
-        print(
-            f"{old_active_card.name} retreated, {self.active_card.name} set as active"
-        )
+        if self.print_actions:
+            print(
+                f"{old_active_card.name} retreated, {self.active_card.name} set as active"
+            )
 
     @staticmethod
     def set_active_card_from_hand(player: "Player", card_id: uuid) -> None:
         card = Player.find_by_id(player.hand, card_id)
         if card in player.hand:
-            print(f"Setting active card from hand to {card.name}")
+            if player.print_actions:
+                print(f"Setting active card from hand to {card.name}")
             player.active_card = card
             player.hand.remove(card)
         else:
             raise ValueError(f"Card {card.name} not found in hand. Hand: {player.hand}")
 
     def set_active_card_from_bench(self, card: Card) -> None:
-        print(f"Setting active card from bench to {card.name}")
+        if self.print_actions:
+            print(f"Setting active card from bench to {card.name}")
         self.active_card = card
         self.bench.remove(card)
 
@@ -400,7 +450,7 @@ class Player:
         self.has_added_energy = False
         self.has_used_trainer = False
         if self.active_card:
-            for card in self.bench + [self.active_card]:
+            for card in self.active_card_and_bench:
                 # Reset the ability property for each card
                 card.has_used_ability = False
                 if turn > 2:
@@ -425,14 +475,16 @@ class Player:
     @staticmethod
     def get_damage_dealt_to_cards(player: "Player") -> int:
         damage_dealt = 0
-        for card in player.bench + [player.active_card]:
+        if player.active_card is None:
+            return 0
+        for card in player.active_card_and_bench:
             damage_dealt += card.max_hp - card.hp
         return damage_dealt
 
     @staticmethod
     def get_number_of_evolved_cards(player: "Player") -> int:
         evolved_cards = 0
-        for card in player.bench + [player.active_card]:
+        for card in player.active_card_and_bench:
             card: Card
             if not card.is_basic:
                 evolved_cards += 1

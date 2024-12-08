@@ -69,8 +69,9 @@ class Match:
         self.game_over = active_player.start_turn(self)
 
         # DATA COLLECTOR: Save the state after and collect the properties
-        self.data_collector.match_state_after = self.serialize()
-        self.data_collector.add_data_from_properties()
+        if self.data_collector:
+            self.data_collector.match_state_after = self.serialize()
+            self.data_collector.add_data_from_properties()
 
         if self.game_over:
             print()
@@ -91,7 +92,9 @@ class Match:
         """
         while not self.game_over:
             self.start_turn()
-        self.data_collector.save_to_csv()
+
+        if self.data_collector:
+            self.data_collector.save_to_csv()
 
     def serialize(self) -> Dict[str, Any]:
         return {
@@ -101,7 +104,29 @@ class Match:
             # Add other relevant match state data
         }
 
-    def simulate_turn_actions(self, player: Player) -> List[List[Action]]:
+    def get_best_actions_for_player(self, player: Player) -> List[Action]:
+        """
+        Determines the best sequence of actions for a given player by simulating all possible turn actions
+        and evaluating their outcomes.
+
+        Args:
+            player (Player): The player for whom the best actions are being determined.
+
+        Returns:
+            List[Action]: The sequence of actions that has the highest evaluation score.
+        """
+        all_actions = self.simulate_turn_actions(player)
+        best_evaluation = float("-inf")
+        best_sequence = []
+
+        for evaluation, sequence, _ in all_actions:
+            if evaluation > best_evaluation:
+                best_evaluation = evaluation
+                best_sequence = sequence
+
+        return best_sequence
+
+    def simulate_turn_actions(self, player: Player) -> List[Tuple[int, List[Action]]]:
         """
         Simulates all possible combinations of actions for this turn.
 
@@ -109,12 +134,14 @@ class Match:
             match (Match): The current match.
 
         Returns:
-            List[List[Action]]: A list of all possible sequences of actions.
+            List[Tuple[int, List[Action]]]: A list of all possible sequences of actions.
         """
         match_copy = copy.deepcopy(self)
         match_copy.turn += 1
 
         player_copy = copy.deepcopy(player)
+        player_copy.print_actions = False
+        player_copy.evaluate_actions = False
 
         player_copy.reset_for_turn(self.turn)
 
@@ -181,11 +208,12 @@ class Match:
 
         for action in actions:
             player_copy = copy.deepcopy(player)
-            new_actions = player_copy.act_and_regather_actions(match, action)
+            match_copy = copy.deepcopy(match)
+            new_actions = player_copy.act_and_regather_actions(match_copy, action)
             new_sequence = current_sequence + [action]
             if new_actions and player_copy.can_continue:
                 Match._simulate_recursive(
-                    match,
+                    match_copy,
                     player_copy,
                     new_sequence,
                     all_sequences,
@@ -194,7 +222,7 @@ class Match:
             else:
                 # If no new actions, add the current sequence to all_sequences
                 evaluation = Player.evaluate_player(player_copy)
-                all_sequences.append((evaluation, new_sequence))
+                all_sequences.append((evaluation, new_sequence, depth))
 
     def __repr__(self):
         return f"Match(Players: {self.players}, Deck: {self.deck})"

@@ -1,6 +1,11 @@
 from enum import Enum
 from attack import Attack
 
+from typing import TYPE_CHECKING, List, Optional
+
+if TYPE_CHECKING:
+    from player import Player
+
 
 class ActionType(Enum):
     FUNCTION = 1
@@ -25,8 +30,9 @@ class Action:
         self.can_continue_turn = can_continue_turn
         self.item_class = item_class
 
-    def act(self, player):
-        print(f"Acting: {self.name}")
+    def act(self, player: "Player"):
+        if player.print_actions:
+            print(f"Acting: {self.name}")
         if self.action_type == ActionType.ITEM:
             for card in player.hand:
                 if isinstance(card, type(self.item_class)):
@@ -52,3 +58,24 @@ class Action:
 
     def __repr__(self):
         return f"Action(Name: {self.name}, Type: {self.action_type})"
+
+    @staticmethod
+    def find_action(
+        action_list: List["Action"], action_to_find: "Action"
+    ) -> Optional["Action"]:
+        for action in action_list:
+            if all(
+                [
+                    action.name == action_to_find.name,
+                    action.action_type == action_to_find.action_type,
+                    (
+                        action.item_class == action_to_find.item_class
+                        if action_to_find.item_class
+                        else True
+                    ),
+                ]
+            ):
+                return action
+        raise Exception(
+            f"No action found, tried to find \n{action_to_find} from \n{action_list}"
+        )
