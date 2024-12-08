@@ -3,6 +3,11 @@ from enum import Enum
 from functools import wraps
 from condition import Condition
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from player import Player
+
 
 class AttackName(Enum):
     SING = "sing"
@@ -647,7 +652,7 @@ ATTACKS = {
 
 def apply_damage(func):
     @wraps(func)
-    def wrapper(player, *args, **kwargs):
+    def wrapper(player: "Player", *args, **kwargs):
         func(player, *args, **kwargs)
         attack_name = AttackName[func.__name__.upper()].value
         damage = ATTACKS[attack_name]["damage"]
@@ -661,7 +666,8 @@ def apply_damage(func):
                 if type(condition) is Condition.Plus10DamageDealed and damage != 0:
                     damage += 10
 
-        print(f"Dealing {damage} to {player.opponent.active_card.name}")
+        if player.print_actions:
+            print(f"Dealing {damage} to {player.opponent.active_card.name}")
         player.opponent.active_card.hp -= damage
 
     return wrapper
