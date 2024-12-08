@@ -254,14 +254,16 @@ class Player:
                     for card_to_evolve in self.active_card_and_bench:
                         if (
                             card_to_evolve
-                            and card.evolves_from.value is card_to_evolve.name
+                            and card.evolves_from.value == card_to_evolve.name
                             and card_to_evolve.can_evolve
                         ):
                             actions.append(
                                 Action(
                                     f"Evolve {card_to_evolve.name} to {card.name}",
-                                    lambda player, card_to_evolve=card_to_evolve, evolution_card=card: Player.evolve_and_remove_from_hand(
-                                        player, card_to_evolve, evolution_card
+                                    lambda player=self, card_to_evolve_id=card_to_evolve.id, evolution_card_id=card.id: Player.evolve_and_remove_from_hand(
+                                        player,
+                                        card_to_evolve_id,
+                                        evolution_card_id,
                                     ),
                                     ActionType.EVOLVE,
                                 )
@@ -355,9 +357,19 @@ class Player:
         return actions
 
     @staticmethod
-    def evolve_and_remove_from_hand(player, card_to_evolve: Card, evolution_card):
-        card_to_evolve.evolve(Cards[evolution_card.name.replace(" ", "_").upper()])
-        Player.remove_card_from_hand(player, evolution_card.id)
+    def evolve_and_remove_from_hand(
+        player: "Player", card_to_evolve_id: uuid, evolution_card_id: uuid
+    ):
+        card_to_evolve = Player.find_by_id(
+            player.active_card_and_bench, card_to_evolve_id
+        )
+        evolution_card = Player.find_by_id(player.hand, evolution_card_id)
+
+        if card_to_evolve and evolution_card:
+            card_to_evolve.evolve(Cards[evolution_card.name.replace(" ", "_").upper()])
+            Player.remove_card_from_hand(player, evolution_card.id)
+        else:
+            raise ValueError("Card to evolve or evolution card not found.")
 
     @staticmethod
     def retreat(player) -> None:
