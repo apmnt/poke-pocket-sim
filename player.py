@@ -55,6 +55,8 @@ class Player:
         self.has_added_energy: bool = False
         self.can_continue: bool = True
         self.id = uuid.uuid4()
+        self.evaluate_actions = False
+        self.print_actions = True
 
     def set_opponent(self, opponent: "Player") -> None:
         self.opponent = opponent
@@ -88,13 +90,14 @@ class Player:
             match.data_collector.match_state_before = match.serialize()
 
         # Prints
-        print(f"{self.name} active card: {self.active_card}")
-        print(f"{self.name} hand: ")
-        for c in self.hand:
-            print("\t", c)
-        print(f"{self.name} bench: ")
-        for c in self.bench:
-            print("\t", c)
+        if self.print_actions:
+            print(f"{self.name} active card: {self.active_card}")
+            print(f"{self.name} hand: ")
+            for c in self.hand:
+                print("\t", c)
+            print(f"{self.name} bench: ")
+            for c in self.bench:
+                print("\t", c)
 
         return self.process_action_loop(match=match)
 
@@ -106,9 +109,10 @@ class Player:
         # Do random action
         if len(actions) > 0:
             # Print actions
-            print("Possible actions:")
-            for action in actions:
-                print("\t", action)
+            if self.print_actions:
+                print("Possible actions:")
+                for action in actions:
+                    print("\t", action)
             random_action = actions.pop(random.randint(0, len(actions) - 1))
             self.can_continue = True
         else:
@@ -167,9 +171,10 @@ class Player:
 
         if self.can_continue and len(actions) > 0:
             # Print actions
-            print("Possible actions:")
-            for action in actions:
-                print("\t", action)
+            if self.print_actions:
+                print("Possible actions:")
+                for action in actions:
+                    print("\t", action)
             random_action = actions.pop(random.randint(0, len(actions) - 1))
         else:
             self.can_continue = False
@@ -371,23 +376,25 @@ class Player:
             [card for card in self.bench if card != old_active_card]
         )
         self.bench.remove(self.active_card)
-
-        print(
-            f"{old_active_card.name} retreated, {self.active_card.name} set as active"
-        )
+        if self.print_actions:
+            print(
+                f"{old_active_card.name} retreated, {self.active_card.name} set as active"
+            )
 
     @staticmethod
     def set_active_card_from_hand(player: "Player", card_id: uuid) -> None:
         card = Player.find_by_id(player.hand, card_id)
         if card in player.hand:
-            print(f"Setting active card from hand to {card.name}")
+            if player.print_actions:
+                print(f"Setting active card from hand to {card.name}")
             player.active_card = card
             player.hand.remove(card)
         else:
             raise ValueError(f"Card {card.name} not found in hand. Hand: {player.hand}")
 
     def set_active_card_from_bench(self, card: Card) -> None:
-        print(f"Setting active card from bench to {card.name}")
+        if self.print_actions:
+            print(f"Setting active card from bench to {card.name}")
         self.active_card = card
         self.bench.remove(card)
 

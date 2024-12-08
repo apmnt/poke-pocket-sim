@@ -1,6 +1,11 @@
 from enum import Enum
 from attack import Attack
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from player import Player
+
 
 class ActionType(Enum):
     FUNCTION = 1
@@ -25,8 +30,9 @@ class Action:
         self.can_continue_turn = can_continue_turn
         self.item_class = item_class
 
-    def act(self, player):
-        print(f"Acting: {self.name}")
+    def act(self, player: "Player"):
+        if player.print_actions:
+            print(f"Acting: {self.name}")
         if self.action_type == ActionType.ITEM:
             for card in player.hand:
                 if isinstance(card, type(self.item_class)):
