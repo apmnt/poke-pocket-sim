@@ -82,9 +82,10 @@ class Player:
         self.current_energy = self.deck.draw_energy()
 
         # DATA COLLECTION: turn number, player name, state before turn
-        match.data_collector.turn = match.turn
-        match.data_collector.active_player = self.name
-        match.data_collector.match_state_before = match.serialize()
+        if match.data_collector:
+            match.data_collector.turn = match.turn
+            match.data_collector.active_player = self.name
+            match.data_collector.match_state_before = match.serialize()
 
         # Prints
         print(f"{self.name} active card: {self.active_card}")
@@ -139,7 +140,10 @@ class Player:
     def act_and_regather_actions(self, match: "Match", random_action: "Action"):
 
         self.can_continue = random_action.act(self)
-        match.data_collector.actions_taken.append(random_action.serialize())
+
+        # DATA COLLECTION: Collect actions
+        if match.data_collector:
+            match.data_collector.actions_taken.append(random_action.serialize())
         actions = []
 
         if random_action.action_type == ActionType.SET_ACTIVE_CARD:

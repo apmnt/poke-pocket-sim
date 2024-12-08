@@ -69,8 +69,9 @@ class Match:
         self.game_over = active_player.start_turn(self)
 
         # DATA COLLECTOR: Save the state after and collect the properties
-        self.data_collector.match_state_after = self.serialize()
-        self.data_collector.add_data_from_properties()
+        if self.data_collector:
+            self.data_collector.match_state_after = self.serialize()
+            self.data_collector.add_data_from_properties()
 
         if self.game_over:
             print()
@@ -91,7 +92,9 @@ class Match:
         """
         while not self.game_over:
             self.start_turn()
-        self.data_collector.save_to_csv()
+
+        if self.data_collector:
+            self.data_collector.save_to_csv()
 
     def serialize(self) -> Dict[str, Any]:
         return {
