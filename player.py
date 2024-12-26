@@ -129,52 +129,16 @@ class Player:
         # Gather actions
         actions = self.gather_actions()
 
-        # Do random action
-        if len(actions) > 0:
-            # Print actions
-            if self.print_actions:
-                print("Possible actions:")
-                for action in actions:
-                    print("\t", action)
-
-            # SELECT ACTION:
-            if self.evaluate_actions:
-                best_actions = match.get_best_actions_for_player(player=self)
-                random_action = None
-            else:
-                random_action = actions.pop(random.randint(0, len(actions) - 1))
-                actions = [random_action]
-            self.can_continue = True
-        else:
-            self.can_continue = False
+        self.can_continue = True
 
         # Action loop, act -> gather -> act... until attack or actions run out
         while self.can_continue is True:
             if self.evaluate_actions:
-
-                # Select best action
-                if best_actions:
-
-                    # TODO: for some reason if the actions are collected from act_and_regather_actions,
-                    # all the actions are not there and find_action will not find the best action.
-                    # This is why they are gathered here twice.
-                    actions = self.gather_actions()
-                    best_action = Action.find_action(actions, best_actions[0])
-                    self.act_and_regather_actions(match, best_action)
-
-                    best_actions.pop(0)
-                else:
-                    self.can_continue = False
-
+                actions = self.process_best_actions(match, actions)
+            elif not self.is_bot:
+                actions = self.process_user_actions(match, actions)
             else:
-
-                # Select random action
-                if actions:
-                    actions = self.act_and_regather_actions(
-                        match, random.choice(actions)
-                    )
-                else:
-                    self.can_continue = False
+                actions = self.process_bot_actions(match, actions)
 
         if self.opponent.active_card is not None and self.opponent.active_card.hp <= 0:
             if self.print_actions:
