@@ -39,9 +39,10 @@ class Player:
         has_added_energy (bool): Indicates if the player has added energy this turn.
     """
 
-    def __init__(self, name: str, deck: "Deck"):
+    def __init__(self, name: str, deck: "Deck", is_bot=True):
         self.name: str = name
         self.deck: "Deck" = deck
+        self.is_bot = is_bot
         self.discard_pile: List = []
         self.hand: List[Card] = [
             self.deck.draw_card() for _ in range(min(5, len(self.deck.cards)))
@@ -105,57 +106,39 @@ class Player:
 
         return self.process_action_loop(match=match)
 
+    def choose_action(self, actions, print_actions=True):
+
+        # Print actions
+        if print_actions:
+            self.print_possible_actions(actions)
+
+        while True:
+            try:
+                selected_index = int(
+                    input("Select an action by entering the corresponding number: ")
+                )
+                if 0 <= selected_index < len(actions):
+                    return selected_index
+                else:
+                    print(f"Please enter a number between 0 and {len(actions) - 1}.")
+            except ValueError:
+                print("Invalid input. Please enter a number.")
+
     def process_action_loop(self, match: "Match"):
 
         # Gather actions
         actions = self.gather_actions()
 
-        # Do random action
-        if len(actions) > 0:
-            # Print actions
-            if self.print_actions:
-                print("Possible actions:")
-                for action in actions:
-                    print("\t", action)
-
-            # SELECT ACTION:
-            if self.evaluate_actions:
-                best_actions = match.get_best_actions_for_player(player=self)
-                random_action = None
-            else:
-                random_action = actions.pop(random.randint(0, len(actions) - 1))
-                actions = [random_action]
-            self.can_continue = True
-        else:
-            self.can_continue = False
+        self.can_continue = True
 
         # Action loop, act -> gather -> act... until attack or actions run out
         while self.can_continue is True:
             if self.evaluate_actions:
-
-                # Select best action
-                if best_actions:
-
-                    # TODO: for some reason if the actions are collected from act_and_regather_actions,
-                    # all the actions are not there and find_action will not find the best action.
-                    # This is why they are gathered here twice.
-                    actions = self.gather_actions()
-                    best_action = Action.find_action(actions, best_actions[0])
-                    self.act_and_regather_actions(match, best_action)
-
-                    best_actions.pop(0)
-                else:
-                    self.can_continue = False
-
+                actions = self.process_best_actions(match, actions)
+            elif not self.is_bot:
+                actions = self.process_user_actions(match, actions)
             else:
-
-                # Select random action
-                if actions:
-                    actions = self.act_and_regather_actions(
-                        match, random.choice(actions)
-                    )
-                else:
-                    self.can_continue = False
+                actions = self.process_bot_actions(match, actions)
 
         if self.opponent.active_card is not None and self.opponent.active_card.hp <= 0:
             if self.print_actions:
@@ -172,6 +155,39 @@ class Player:
 
             if self.points >= 3:
                 return True
+
+    def print_possible_actions(self, actions):
+        if self.print_actions:
+            print("Possible actions:")
+            for i, action in enumerate(actions):
+                print(f"\t{i}: {action}")
+
+    def process_best_actions(self, match, best_actions):
+        if best_actions:
+            actions = self.gather_actions()
+            best_action = Action.find_action(actions, best_actions[0])
+            self.act_and_regather_actions(match, best_action)
+            best_actions.pop(0)
+            return best_actions
+        else:
+            self.can_continue = False
+
+    def process_user_actions(self, match, actions):
+        if actions:
+            selected_index = self.choose_action(actions, print_actions=True)
+            actions = self.act_and_regather_actions(match, actions[selected_index])
+            return actions
+        else:
+            self.can_continue = False
+
+    def process_bot_actions(self, match, actions):
+        if actions:
+            actions = self.act_and_regather_actions(
+                match, actions.pop(random.randint(0, len(actions) - 1))
+            )
+            return actions
+        else:
+            self.can_continue = False
 
     def act_and_regather_actions(self, match: "Match", random_action: "Action"):
 
@@ -200,16 +216,6 @@ class Player:
             if random_action.action_type == ActionType.ITEM:
                 self.remove_item_from_hand(random_action.item_class)
             actions = self.gather_actions()
-
-        if self.can_continue and len(actions) > 0:
-            # Print actions
-            if self.print_actions:
-                print("Possible actions:")
-                for action in actions:
-                    print("\t", action)
-            random_action = actions.pop(random.randint(0, len(actions) - 1))
-        else:
-            self.can_continue = False
 
         return actions
 
@@ -352,12 +358,15 @@ class Player:
                     actions.append(
                         Action(
                             f"Add {self.current_energy} energy to {card.name}",
-                            lambda player=self, card_id=card.id, energy=self.current_energy: Card.add_energy(
-                                player,
-                                Player.find_by_id(
-                                    player.active_card_and_bench, card_id
+                            lambda player=self, card_id=card.id, energy=self.current_energy: (
+                                Card.add_energy(
+                                    player,
+                                    Player.find_by_id(
+                                        player.active_card_and_bench, card_id
+                                    ),
+                                    energy,
                                 ),
-                                energy,
+                                setattr(self, "has_added_energy", True),
                             ),
                             ActionType.ADD_ENERGY,
                         )
