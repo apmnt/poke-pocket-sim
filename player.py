@@ -173,6 +173,39 @@ class Player:
             if self.points >= 3:
                 return True
 
+    def print_possible_actions(self, actions):
+        if self.print_actions:
+            print("Possible actions:")
+            for i, action in enumerate(actions):
+                print(f"\t{i}: {action}")
+
+    def process_best_actions(self, match, best_actions):
+        if best_actions:
+            actions = self.gather_actions()
+            best_action = Action.find_action(actions, best_actions[0])
+            self.act_and_regather_actions(match, best_action)
+            best_actions.pop(0)
+            return best_actions
+        else:
+            self.can_continue = False
+
+    def process_user_actions(self, match, actions):
+        if actions:
+            selected_index = self.choose_action(actions, print_actions=True)
+            actions = self.act_and_regather_actions(match, actions[selected_index])
+            return actions
+        else:
+            self.can_continue = False
+
+    def process_bot_actions(self, match, actions):
+        if actions:
+            actions = self.act_and_regather_actions(
+                match, actions.pop(random.randint(0, len(actions) - 1))
+            )
+            return actions
+        else:
+            self.can_continue = False
+
     def act_and_regather_actions(self, match: "Match", random_action: "Action"):
 
         self.can_continue = random_action.act(self)
