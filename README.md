@@ -15,11 +15,13 @@ Roadmap:
 - [x] Add supporters
 - [x] Add abilities
 - [x] Add evolutions
-- [ ] Add data collection for match analysis
-- [ ] Add simulation of one turn and evaluation of the action sequences
+- [x] Add data collection for match analysis
+- [x] Add simulation of one turn and evaluation of the action sequences
 - [ ] Add simulation of multiple turns and evaluate the action sequences
-- [ ] Add user based inputs to make it user/bot playable
+- [x] Add user based inputs to make it user/bot playable
 - [ ] Add better text based user interface for playing
+
+To play one game against an opponent, run the test_single_player.py. The script creates an example deck and takes in user inputs for actions for player one.
 
 Possible actions for each turn can be simulated and each sequence can be evaluated to find the best sequence based on evolutions, damage done, and knocked out cards. Example:
 
