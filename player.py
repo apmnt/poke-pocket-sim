@@ -106,6 +106,24 @@ class Player:
 
         return self.process_action_loop(match=match)
 
+    def choose_action(self, actions, print_actions=True):
+
+        # Print actions
+        if print_actions:
+            self.print_possible_actions(actions)
+
+        while True:
+            try:
+                selected_index = int(
+                    input("Select an action by entering the corresponding number: ")
+                )
+                if 0 <= selected_index < len(actions):
+                    return selected_index
+                else:
+                    print(f"Please enter a number between 0 and {len(actions) - 1}.")
+            except ValueError:
+                print("Invalid input. Please enter a number.")
+
     def process_action_loop(self, match: "Match"):
 
         # Gather actions
