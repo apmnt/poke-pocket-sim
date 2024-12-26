@@ -358,12 +358,15 @@ class Player:
                     actions.append(
                         Action(
                             f"Add {self.current_energy} energy to {card.name}",
-                            lambda player=self, card_id=card.id, energy=self.current_energy: Card.add_energy(
-                                player,
-                                Player.find_by_id(
-                                    player.active_card_and_bench, card_id
+                            lambda player=self, card_id=card.id, energy=self.current_energy: (
+                                Card.add_energy(
+                                    player,
+                                    Player.find_by_id(
+                                        player.active_card_and_bench, card_id
+                                    ),
+                                    energy,
                                 ),
-                                energy,
+                                setattr(self, "has_added_energy", True),
                             ),
                             ActionType.ADD_ENERGY,
                         )
