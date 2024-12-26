@@ -39,9 +39,10 @@ class Player:
         has_added_energy (bool): Indicates if the player has added energy this turn.
     """
 
-    def __init__(self, name: str, deck: "Deck"):
+    def __init__(self, name: str, deck: "Deck", is_bot=True):
         self.name: str = name
         self.deck: "Deck" = deck
+        self.is_bot = is_bot
         self.discard_pile: List = []
         self.hand: List[Card] = [
             self.deck.draw_card() for _ in range(min(5, len(self.deck.cards)))
