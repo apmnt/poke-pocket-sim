@@ -217,16 +217,6 @@ class Player:
                 self.remove_item_from_hand(random_action.item_class)
             actions = self.gather_actions()
 
-        if self.can_continue and len(actions) > 0:
-            # Print actions
-            if self.print_actions:
-                print("Possible actions:")
-                for action in actions:
-                    print("\t", action)
-            random_action = actions.pop(random.randint(0, len(actions) - 1))
-        else:
-            self.can_continue = False
-
         return actions
 
     def remove_item_from_hand(self, item_class: type) -> None:
