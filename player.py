@@ -386,6 +386,18 @@ class Player:
                                 ActionType.SET_ACTIVE_CARD,
                             )
                         )
+
+        # END TURN
+        if self.active_card is not None:
+            actions.append(
+                Action(
+                    "End turn",
+                    lambda player: setattr(player, "can_continue", False),
+                    ActionType.END_TURN,
+                    can_continue_turn=False,
+                )
+            )
+
         return actions
 
     @staticmethod

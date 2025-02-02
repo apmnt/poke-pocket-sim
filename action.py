@@ -18,6 +18,7 @@ class ActionType(Enum):
     ABILITY = 8
     EVOLVE = 9
     RETREAT = 10
+    END_TURN = 11
 
 
 class Action:
