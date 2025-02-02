@@ -388,7 +388,7 @@ class Player:
                         )
 
         # END TURN
-        if self.active_card is not None:
+        if self.active_card is not None and len(actions) > 0:
             actions.append(
                 Action(
                     "End turn",
