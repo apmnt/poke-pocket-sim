@@ -104,6 +104,9 @@ class Player:
             else:
                 actions = self.process_bot_actions(match, actions)
 
+        return self.handle_knockout_points()
+
+    def handle_knockout_points(self):
         if self.opponent.active_card is not None and self.opponent.active_card.hp <= 0:
             if self.print_actions:
                 print(
