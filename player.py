@@ -66,9 +66,9 @@ class Player:
     def set_opponent(self, opponent: "Player") -> None:
         self.opponent = opponent
 
-    def start_turn(self, match: "Match", for_rl_training=False) -> bool:
+    def start_turn(self, match: "Match") -> bool:
         self.setup_turn(match)
-        return self.process_action_loop(match=match)
+        return self.process_action_loop(match)
 
     def choose_action(self, actions, print_actions=True):
 
@@ -122,6 +122,8 @@ class Player:
 
             if self.points >= 3:
                 return True
+            else:
+                return False
 
     def print_possible_actions(self, actions):
         if self.print_actions:
@@ -152,6 +154,13 @@ class Player:
             actions = self.act_and_regather_actions(
                 match, actions.pop(random.randint(0, len(actions) - 1))
             )
+            return actions
+        else:
+            self.can_continue = False
+
+    def process_rl_actions(self, match, actions: List, action_to_take):
+        if actions:
+            actions = self.act_and_regather_actions(match, actions.pop(action_to_take))
             return actions
         else:
             self.can_continue = False
