@@ -66,44 +66,8 @@ class Player:
     def set_opponent(self, opponent: "Player") -> None:
         self.opponent = opponent
 
-    def start_turn(self, match: "Match") -> bool:
-        self.reset_for_turn(match.turn)
-
-        # Update conditions
-        if self.active_card:
-            self.active_card.update_conditions()
-        elif match.turn > 2:
-            # If active card is knocked out and there are no cards on the bench
-            # Game over
-            if len(self.bench) == 0:
-                return True
-            else:
-                self.set_active_card_from_bench(random.choice(self.bench))
-
-        # Draw card
-        drawn_card = self.deck.draw_card()
-        if drawn_card is not None:
-            self.hand.append(drawn_card)
-
-        # Draw energy
-        self.current_energy = self.deck.draw_energy()
-
-        # DATA COLLECTION: turn number, player name, state before turn
-        if match.data_collector:
-            match.data_collector.turn = match.turn
-            match.data_collector.active_player = self.name
-            match.data_collector.match_state_before = match.serialize()
-
-        # Prints
-        if self.print_actions:
-            print(f"{self.name} active card: {self.active_card}")
-            print(f"{self.name} hand: ")
-            for c in self.hand:
-                print("\t", c)
-            print(f"{self.name} bench: ")
-            for c in self.bench:
-                print("\t", c)
-
+    def start_turn(self, match: "Match", for_rl_training=False) -> bool:
+        self.setup_turn(match)
         return self.process_action_loop(match=match)
 
     def choose_action(self, actions, print_actions=True):
@@ -467,16 +431,51 @@ class Player:
             player.bench.append(card)
             player.hand.remove(card)
 
-    def reset_for_turn(self, turn: int) -> None:
+    def setup_turn(self, match) -> None:
         self.has_added_energy = False
         self.has_used_trainer = False
         if self.active_card:
             for card in self.active_card_and_bench:
                 # Reset the ability property for each card
                 card.has_used_ability = False
-                if turn > 2:
+                if match.turn > 2:
                     # Set this property to true, so the turn after placing the card they can be evolved
                     card.can_evolve = True
+
+        # Update conditions
+        if self.active_card:
+            self.active_card.update_conditions()
+        elif match.turn > 2:
+            # If active card is knocked out and there are no cards on the bench
+            # Game over
+            if len(self.bench) == 0:
+                return True
+            else:
+                self.set_active_card_from_bench(random.choice(self.bench))
+
+        # Draw card
+        drawn_card = self.deck.draw_card()
+        if drawn_card is not None:
+            self.hand.append(drawn_card)
+
+        # Draw energy
+        self.current_energy = self.deck.draw_energy()
+
+        # DATA COLLECTION: turn number, player name, state before turn
+        if match.data_collector:
+            match.data_collector.turn = match.turn
+            match.data_collector.active_player = self.name
+            match.data_collector.match_state_before = match.serialize()
+
+        # Prints
+        if self.print_actions:
+            print(f"{self.name} active card: {self.active_card}")
+            print(f"{self.name} hand: ")
+            for c in self.hand:
+                print("\t", c)
+            print(f"{self.name} bench: ")
+            for c in self.bench:
+                print("\t", c)
 
     @staticmethod
     def find_by_id(objects, target_id):
