@@ -3,19 +3,17 @@ from gymnasium import spaces
 import numpy as np
 import random
 
-# Import classes from the poke-pocket-sim repository.
-# Adjust the import paths as needed if you install the package or clone the repo.
 from match import Match
 from player import Player
 from deck import Deck
 from card import Card, Cards
 from item import Item
+from action import ActionType
 
 
 class PokePocketSelfPlayEnv(gym.Env):
     """
-    A custom Gym environment wrapping the poke-pocket-sim simulator in self-play mode.
-    Both players are controlled by the same RL agent (via integer command inputs).
+    A Gym environment wrapping the simulator in self-play mode.
     On each turn, the active player (determined by turn number) selects an action.
     """
 
@@ -31,7 +29,7 @@ class PokePocketSelfPlayEnv(gym.Env):
         # Observation space. (needs a lot work)
         # [Player1 points, Player2 points, turn, Player1 active hp, Player1 active max hp, Player2 active hp, Player2 active max hp]
         low = np.array([0, 0, 0, 0, 0, 0, 0], dtype=np.float32)
-        high = np.array([10, 10, 100, 200, 200, 200, 200], dtype=np.float32)
+        high = np.array([10, 10, 100, 200, 300, 300, 300], dtype=np.float32)
         self.observation_space = spaces.Box(low=low, high=high, dtype=np.float32)
 
         self._setup_game()
@@ -66,7 +64,7 @@ class PokePocketSelfPlayEnv(gym.Env):
 
         # Create a match with player1 as the starting player.
         self.match = Match(self.player1, self.player2)
-        self.match.turn = 1 
+        self.match.turn = 1
 
         # Determine the active player and gather its available actions.
         self.active_player = self._current_active_player()
@@ -108,6 +106,11 @@ class PokePocketSelfPlayEnv(gym.Env):
         can_continue = False
 
         self.available_actions = self.active_player.gather_actions()
+
+        # if self.match.turn < 3 and any(action.action_type == ActionType.ATTACK for action in self.available_actions):
+        #     print("Attack actions are not allowed in self-play mode.")
+
+        # self.available_actions = self.active_player.gather_actions()
 
         # Check if the provided action index is valid.
         if action >= len(self.available_actions):
@@ -195,9 +198,8 @@ class PokePocketSelfPlayEnv(gym.Env):
         if np.random.rand() < epsilon:
             return random.randint(0, self.env.max_actions - 1)
         else:
-            q_values = self.network.predict(obs) 
+            q_values = self.network.predict(obs)
             return np.argmax(q_values)
-
 
 
 if __name__ == "__main__":
@@ -208,9 +210,8 @@ if __name__ == "__main__":
     reward_total = 0
 
     while not match_over:
-        
-        # Just a random selection for now
 
+        # Just a random selection for now
         env.active_player.setup_turn(env.match)
 
         action = random.randint(0, env.max_actions - 1)
