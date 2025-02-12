@@ -1,8 +1,8 @@
 import random
 from typing import TYPE_CHECKING, List
 import uuid
-from attack import EnergyType
-from action import Action, ActionType
+from .attack import EnergyType
+from .action import Action, ActionType
 
 if TYPE_CHECKING:
     from player import Player

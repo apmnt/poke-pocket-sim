@@ -1,9 +1,9 @@
 import random
 import uuid
 from enum import Enum
-from action import Action, ActionType
-from attack import Attack, EnergyType
-from ability import Ability
+from .action import Action, ActionType
+from .attack import Attack, EnergyType
+from .ability import Ability
 from typing import TYPE_CHECKING, Dict, Any
 
 if TYPE_CHECKING:

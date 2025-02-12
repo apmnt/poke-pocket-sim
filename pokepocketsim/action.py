@@ -1,5 +1,5 @@
 from enum import Enum
-from attack import Attack
+from .attack import Attack
 
 from typing import TYPE_CHECKING, List, Optional
 

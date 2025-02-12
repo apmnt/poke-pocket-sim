@@ -1,12 +1,12 @@
 # Dynamically created attack methods and their source code:
 from enum import Enum
 from functools import wraps
-from condition import Condition
+from .condition import Condition
 
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from player import Player
+    from .player import Player
 
 
 class AttackName(Enum):

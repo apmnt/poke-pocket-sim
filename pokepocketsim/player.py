@@ -1,11 +1,11 @@
 import random, copy
 from typing import List, Optional, TYPE_CHECKING, Dict, Any
 import uuid
-from action import Action, ActionType
-from card import Card, Cards
-from item import Item
-from pokepocketsim.supporter import Supporter
-from attack import Attack, EnergyType
+from .action import Action, ActionType
+from .card import Card, Cards
+from .item import Item
+from .supporter import Supporter
+from .attack import Attack, EnergyType
 
 if TYPE_CHECKING:
     from deck import Deck

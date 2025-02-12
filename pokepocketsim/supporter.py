@@ -1,6 +1,6 @@
 from enum import Enum
 import random
-from condition import Condition
+from .condition import Condition
 
 
 class Supporter:

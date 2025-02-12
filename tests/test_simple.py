@@ -1,9 +1,5 @@
 import pytest
-from player import Player
-from deck import Deck
-from card import Card, Cards
-from item import Item
-from match import Match
+from pokepocketsim import Player, Deck, Card, Item, Match, Cards
 
 
 class TestMatch:

@@ -1,8 +1,8 @@
 import random
-from player import Player
-from attack import Attack
-from action import Action, ActionType
-from data_collector import DataCollector
+from .player import Player
+from .attack import Attack
+from .action import Action, ActionType
+from .data_collector import DataCollector
 from typing import List, Tuple, Dict, Any
 import copy
 
