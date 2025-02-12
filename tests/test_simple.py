@@ -51,7 +51,30 @@ class TestMatch:
         self.test_match = Match(self.test_player1, self.test_player2)
 
     def test_attack_and_win(self, monkeypatch):
-        inputs = iter([1, 0, 1, 1, 4, 2, 4, 1, 0, 4, 0])
+        inputs = iter(
+            [
+                1,
+                0,
+                1,
+                1,
+                4,
+                1,
+                0,
+                4,
+                0,
+                0,
+                3,
+                0,
+                3,
+                0,
+                0,
+                0,
+                2,
+                0,
+                2,
+                0,
+            ]
+        )
         monkeypatch.setattr("builtins.input", lambda prompt: next(inputs))
         self.test_match.play_one_match()
 
