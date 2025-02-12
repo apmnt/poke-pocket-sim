@@ -653,6 +653,8 @@ ATTACKS = {
 def apply_damage(func):
     @wraps(func)
     def wrapper(player: "Player", *args, **kwargs):
+        if player.opponent.active_card is None:
+            raise Exception("Player opponent active card was None")
         func(player, *args, **kwargs)
         attack_name = AttackName[func.__name__.upper()].value
         damage = ATTACKS[attack_name]["damage"]
