@@ -27,7 +27,10 @@ class Match:
     """
 
     def __init__(
-        self, starting_player: Player, second_player: Player, data_collector=None
+        self,
+        starting_player: Player,
+        second_player: Player,
+        data_collector=None,
     ):
         """
         Initializes a match between two players.
@@ -143,7 +146,7 @@ class Match:
         player_copy.print_actions = False
         player_copy.evaluate_actions = False
 
-        player_copy.reset_for_turn(self.turn)
+        player_copy.setup_turn(self.turn)
 
         # Update conditions
         if player_copy.active_card:
