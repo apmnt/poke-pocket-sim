@@ -4,5 +4,5 @@ from .deck import Deck
 from .card import Card, Cards
 from .item import Item
 from .ability import Ability
-from .attack import Attack
+from .attack import Attack, EnergyType
 from .action import Action
