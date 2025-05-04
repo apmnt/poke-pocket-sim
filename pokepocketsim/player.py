@@ -85,23 +85,6 @@ class Player:
         self.setup_turn(match)
         return self.process_action_loop(match)
 
-    def choose_action(self, actions: List[Action], print_actions: bool = True) -> int:
-        # Print actions
-        if print_actions:
-            self.print_possible_actions(actions)
-
-        while True:
-            try:
-                selected_index = int(
-                    input("Select an action by entering the corresponding number: ")
-                )
-                if 0 <= selected_index < len(actions):
-                    return selected_index
-                else:
-                    print(f"Please enter a number between 0 and {len(actions) - 1}.")
-            except ValueError:
-                print("Invalid input. Please enter a number.")
-
     def process_action_loop(self, match: "Match") -> bool:
         # Gather actions
         actions: List[Action] = self.gather_actions()
@@ -112,10 +95,8 @@ class Player:
         while self.can_continue is True:
             if self.evaluate_actions:
                 actions = self.process_best_actions(match, actions)
-            elif not self.is_bot:
-                actions = self.process_user_actions(match, actions)
             else:
-                actions = self.process_bot_actions(match, actions)
+                actions = self.process_random_actions(match, actions)
 
         return self.handle_knockout_points()
 
@@ -162,18 +143,7 @@ class Player:
             self.can_continue = False
             return []
 
-    def process_user_actions(
-        self, match: "Match", actions: List[Action]
-    ) -> List[Action]:
-        if actions:
-            selected_index = self.choose_action(actions, print_actions=True)
-            actions = self.act_and_regather_actions(match, actions[selected_index])
-            return actions
-        else:
-            self.can_continue = False
-            return []
-
-    def process_bot_actions(
+    def process_random_actions(
         self, match: "Match", actions: List[Action]
     ) -> List[Action]:
         if actions:
@@ -181,21 +151,6 @@ class Player:
             selected_action = actions.pop(action_index)
             actions = self.act_and_regather_actions(match, selected_action)
             return actions
-        else:
-            self.can_continue = False
-            return []
-
-    def process_rl_actions(
-        self, match: "Match", actions: List[Action], action_to_take: int
-    ) -> List[Action]:
-        if actions:
-            if 0 <= action_to_take < len(actions):
-                selected_action = actions.pop(action_to_take)
-                actions = self.act_and_regather_actions(match, selected_action)
-                return actions
-            else:
-                self.can_continue = False
-                return []
         else:
             self.can_continue = False
             return []
