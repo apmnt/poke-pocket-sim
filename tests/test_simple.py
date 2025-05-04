@@ -46,9 +46,34 @@ class TestMatch:
 
         self.test_match = Match(self.test_player1, self.test_player2)
 
-    def test_1(self):
-        # TODO: Add tests after action refactoring
-        assert True
+    def test_random_100_games_no_exception(self):
+        """
+        Play 1000 matches with two bot players using random actions and ensure they complete without errors.
+        """
+        for i in range(1000):
+            # Build decks for both bots
+            deck1 = Deck(energy_types=["psychic"])
+            deck1.add(Card.create_card(Cards.RALTS))
+            deck1.add(Card.create_card(Cards.RALTS))
+            deck1.add(Card.create_card(Cards.RALTS))
+            deck1.add(Card.create_card(Cards.RALTS))
+            deck1.add(Item.Potion)
+            deck1.add(Item.Potion)
+
+            deck2 = Deck(energy_types=["psychic"])
+            deck2.add(Card.create_card(Cards.RALTS))
+            deck2.add(Card.create_card(Cards.RALTS))
+            deck2.add(Card.create_card(Cards.RALTS))
+            deck2.add(Card.create_card(Cards.RALTS))
+
+            # Initialize bot players and match
+            player1 = Player(f"bot1_{i}", deck1)
+            player2 = Player(f"bot2_{i}", deck2)
+            match = Match(player1, player2)
+            match.play_one_match()
+
+            # Ensure the match ends
+            assert match.game_over
 
 
 if __name__ == "__main__":
