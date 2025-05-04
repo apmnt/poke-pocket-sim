@@ -4,10 +4,11 @@ from enum import Enum
 from .action import Action, ActionType
 from .attack import Attack, EnergyType
 from .ability import Ability
-from typing import TYPE_CHECKING, Dict, Any
+from typing import TYPE_CHECKING, Dict, Any, List, Optional, Union, Callable, Type, cast
+from .item import Item
 
 if TYPE_CHECKING:
-    from player import Player
+    from .player import Player
 
 
 class Cards(Enum):
@@ -17,7 +18,7 @@ class Cards(Enum):
     GARDEVOIR = "Gardevoir"
 
 
-CARDS_DICT = {
+CARDS_DICT: Dict[Cards, Dict[str, Any]] = {
     Cards.MEWTWO_EX: {
         "hp": 150,
         "type": EnergyType.PSYCHIC,
@@ -68,53 +69,53 @@ CARDS_DICT = {
 class Card:
     def __init__(
         self,
-        name,
-        hp,
-        type,
-        attacks,
-        retreat_cost,
-        ability=None,
-        weakness=None,
-        is_basic=True,
-        is_ex=False,
-        evolves_from=None,
-    ):
-        self.id = uuid.uuid4()
-        self.name = name
-        self.max_hp = hp
-        self.hp = hp
+        name: str,
+        hp: int,
+        type: EnergyType,
+        attacks: List[Callable],
+        retreat_cost: int,
+        ability: Optional[Any] = None,
+        weakness: Optional[EnergyType] = None,
+        is_basic: bool = True,
+        is_ex: bool = False,
+        evolves_from: Optional[Union[Cards, "Card"]] = None,
+    ) -> None:
+        self.id: uuid.UUID = uuid.uuid4()
+        self.name: str = name
+        self.max_hp: int = hp
+        self.hp: int = hp
         self.type: EnergyType = type
-        self.energies = {}
-        self.attacks = attacks
-        self.retreat_cost = retreat_cost
-        self.modifiers = []
-        self.ability: Ability = ability
-        self.conditions = []
-        self.weakness = weakness
-        self.is_basic = is_basic
-        self.is_ex = is_ex
-        self.has_used_ability = False
-        self.evolves_from: Card = evolves_from
-        self.can_evolve = False
+        self.energies: Dict[str, int] = {}
+        self.attacks: List[Callable] = attacks
+        self.retreat_cost: int = retreat_cost
+        self.modifiers: List[Any] = []
+        self.ability: Optional[Any] = ability
+        self.conditions: List[Any] = []
+        self.weakness: Optional[EnergyType] = weakness
+        self.is_basic: bool = is_basic
+        self.is_ex: bool = is_ex
+        self.has_used_ability: bool = False
+        self.evolves_from: Optional[Union[Cards, "Card"]] = evolves_from
+        self.can_evolve: bool = False
 
-    def add_condition(self, condition):
+    def add_condition(self, condition: Any) -> None:
         if any(isinstance(cond, condition.__class__) for cond in self.conditions):
             # TODO: sometimes the conditions do not get removed off benched pokemon
             return
         self.conditions.append(condition)
 
-    def remove_condition(self, condition_name):
+    def remove_condition(self, condition_name: str) -> None:
         self.conditions = [
             condition for condition in self.conditions if condition != condition_name
         ]
 
-    def update_conditions(self):
+    def update_conditions(self) -> None:
         self.conditions = [
             condition for condition in self.conditions if not condition.rid()
         ]
 
     @staticmethod
-    def add_energy(player: "Player", card: "Card", energy):
+    def add_energy(player: "Player", card: "Card", energy: str) -> None:
         if energy in card.energies:
             card.energies[energy] += 1
         else:
@@ -122,7 +123,7 @@ class Card:
         if player.print_actions:
             print(f"Current energies of {card.name} {card.energies}")
 
-    def remove_energy(self, energy_enum):
+    def remove_energy(self, energy_enum: EnergyType) -> None:
         energy = energy_enum.value
         if energy not in self.energies:
             raise ValueError(f"Energy type {energy_enum.value} not found in energies.")
@@ -132,7 +133,7 @@ class Card:
             )
         self.energies[energy_enum.value] -= 1
 
-    def remove_retreat_cost_energy(self):
+    def remove_retreat_cost_energy(self) -> None:
         total_energy_needed = self.retreat_cost
         while total_energy_needed > 0:
             available_energies = [
@@ -144,22 +145,25 @@ class Card:
             self.remove_energy(EnergyType(selected_energy))
             total_energy_needed -= 1
 
-    def get_total_energy(self):
+    def get_total_energy(self) -> int:
         return sum(self.energies.values())
 
-    def evolve(self, evolved_card_name: str) -> None:
+    def evolve(self, evolved_card_name: Cards) -> None:
         """
         Evolves this card into the given evolved card.
 
         Args:
-            evolved_card_name (str): The card to evolve into.
+            evolved_card_name (Cards): The card to evolve into.
         """
-        if evolved_card_name not in CARDS_DICT.keys():
+        if evolved_card_name not in CARDS_DICT:
             raise ValueError(f"Card {evolved_card_name} does not exist in CARDS_DICT.")
 
         evolved_card_info = CARDS_DICT[evolved_card_name]
 
-        if evolved_card_info["evolves_from"].value != self.name:
+        if (
+            evolved_card_info["evolves_from"] is None
+            or evolved_card_info["evolves_from"].value != self.name
+        ):
             raise ValueError(
                 f"{evolved_card_name.value} cannot evolve from {self.name}"
             )
@@ -177,36 +181,59 @@ class Card:
         self.evolves_from = evolved_card_info["evolves_from"]
         self.can_evolve = False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         energies_str = ", ".join(
             f"{energy}: {amount}" for energy, amount in self.energies.items()
         )
         return f"Card({self.name} with {self.hp} hp, Energies: {energies_str})"
 
     def serialize(self) -> Dict[str, Any]:
+        ability_name = None
+        if self.ability:
+            ability_name = getattr(self.ability, "name", None)
+
+        weakness_name = None
+        if self.weakness:
+            weakness_name = self.weakness.name
+
+        evolves_from_name = None
+        if self.evolves_from:
+            if isinstance(self.evolves_from, Cards):
+                evolves_from_name = self.evolves_from.value
+            else:
+                # If evolves_from is a Card object
+                other_card = self.evolves_from
+                evolves_from_name = other_card.name
+
         return {
-            "id": str(self.id),
             "name": self.name,
-            "max_hp": self.max_hp,
             "hp": self.hp,
-            "type": self.type.value,
+            "max_hp": self.max_hp,
+            "type": str(self.type),
             "energies": self.energies,
-            "attacks": [attack.__name__ for attack in self.attacks],
             "retreat_cost": self.retreat_cost,
-            "ability": self.ability.name if self.ability else None,
-            "conditions": [condition.serialize() for condition in self.conditions],
-            "weakness": self.weakness.name if self.weakness else None,
+            "ability": ability_name,
+            "weakness": weakness_name,
             "is_basic": self.is_basic,
             "is_ex": self.is_ex,
-            "has_used_ability": self.has_used_ability,
-            "evolves_from": self.evolves_from.name if self.evolves_from else None,
+            "evolves_from": evolves_from_name,
             "can_evolve": self.can_evolve,
+            "conditions": [cond.serialize() for cond in self.conditions],
         }
 
     @staticmethod
-    def create_card(card_enum: Cards):
+    def create_card(card_enum: Cards) -> "Card":
+        """
+        Factory method to create a card from an enum.
+
+        Args:
+            card_enum (Cards): The enum value representing the card.
+
+        Returns:
+            Card: A new card instance with properties set according to the enum.
+        """
         if card_enum not in CARDS_DICT:
-            raise ValueError(f"Card {card_enum} does not exist in CARDS_DICT.")
+            raise ValueError(f"Card {card_enum} not found in CARDS_DICT.")
 
         card_info = CARDS_DICT[card_enum]
         return Card(name=card_enum.value, **card_info)

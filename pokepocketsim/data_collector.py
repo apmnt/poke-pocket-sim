@@ -1,21 +1,20 @@
 import json
 import csv
-from typing import List, Dict, Any, TYPE_CHECKING
+from typing import List, Dict, Any, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from action import Action
+    from .action import Action
 
 
 class DataCollector:
-    def __init__(self, file_path: str):
-        self.file_path = file_path
-        self.data = []
-        self.turn = None
-        self.active_player = None
-        self.match_state_before = None
-        self.actions_taken: List = None
-        self.match_state_after = None
-        self.actions_taken = []
+    def __init__(self, file_path: str) -> None:
+        self.file_path: str = file_path
+        self.data: List[Dict[str, Any]] = []
+        self.turn: Optional[int] = None
+        self.active_player: Optional[str] = None
+        self.match_state_before: Optional[Dict[str, Any]] = None
+        self.match_state_after: Optional[Dict[str, Any]] = None
+        self.actions_taken: List[Dict[str, Any]] = []
 
     def add_data(
         self,
@@ -24,7 +23,7 @@ class DataCollector:
         match_state_before: Dict[str, Any],
         actions_taken: List[Dict[str, Any]],
         match_state_after: Dict[str, Any],
-    ):
+    ) -> None:
         self.data.append(
             {
                 "turn": turn,
@@ -35,7 +34,15 @@ class DataCollector:
             }
         )
 
-    def add_data_from_properties(self):
+    def add_data_from_properties(self) -> None:
+        if (
+            self.turn is None
+            or self.active_player is None
+            or self.match_state_before is None
+            or self.match_state_after is None
+        ):
+            return
+
         self.data.append(
             {
                 "turn": self.turn,
@@ -51,7 +58,7 @@ class DataCollector:
         self.actions_taken = []
         self.match_state_after = None
 
-    def save_to_csv(self):
+    def save_to_csv(self) -> None:
         with open(self.file_path, mode="w", newline="") as file:
             writer = csv.DictWriter(
                 file,

@@ -2,6 +2,7 @@ from enum import Enum
 from functools import wraps
 import inspect
 from pprint import pformat
+from typing import Dict, Any, Callable, List, Optional, cast, Union
 
 
 class EnergyType(Enum):
@@ -1416,32 +1417,71 @@ ATTACKS = {
 }
 
 
-def apply_damage(func):
-    @wraps(func)
-    def wrapper(player, *args, **kwargs):
-        func(player, *args, **kwargs)
-        attack_name = AttackName[func.__name__.upper()]
-        damage = ATTACKS[attack_name]["damage"]
-        if (
-            damage != 0
-            and player.opponent.active_card.weakness == player.active_card.type
-        ):
-            damage += 20
-        player.opponent.active_card.hp -= damage
+def apply_damage(func: Callable) -> Callable:
+    """Decorator that applies damage to the opponent's active card based on the attack used."""
 
-    return wrapper
+    @wraps(func)
+    def wrapper(player: Any, *args: Any, **kwargs: Any) -> None:
+        """Wrapper function to apply damage after the attack function is called."""
+        func(player, *args, **kwargs)
+
+        # Find the attack name by converting function name to a valid format
+        attack_name = func.__name__.replace("_", "-")
+
+        # If we have valid attacks data
+        if attack_name in ATTACKS:
+            damage = cast(int, ATTACKS[attack_name]["damage"])
+
+            # Apply weakness bonus
+            if (
+                player.opponent
+                and player.opponent.active_card
+                and player.active_card
+                and hasattr(player.opponent.active_card, "weakness")
+                and player.opponent.active_card.weakness == player.active_card.type
+            ):
+                damage += 20
+
+            # Apply damage
+            if player.opponent and player.opponent.active_card:
+                player.opponent.active_card.hp -= damage
+
+    return cast(Callable, wrapper)
 
 
 class Attack:
+    """Class containing attack methods and utilities."""
 
     @staticmethod
-    def can_use_attack(card, attack_func):
+    def can_use_attack(card: Any, attack_func: Callable) -> bool:
+        """
+        Check if a card can use the specified attack based on energy requirements.
+
+        Args:
+            card: The card attempting to use the attack
+            attack_func: The attack function to check
+
+        Returns:
+            Boolean indicating if the attack can be used
+        """
+        # Check if the attack exists in the ATTACKS dictionary
         attack_name = attack_func.__name__.replace("_", "-")
         if attack_name not in ATTACKS:
-            raise ValueError(f"Attack {attack_name} does not exist")
+            # Return False instead of raising an exception for safer operation
+            return False
 
+        # Ensure we have energies to check
+        if not hasattr(card, "energies") or not card.energies:
+            return False
+
+        # Make a copy to avoid modifying the original
         energies = card.energies.copy()
-        attack_cost = ATTACKS[attack_name]["energy"]
+        attack_cost: Dict[str, int] = cast(
+            Dict[str, int], ATTACKS[attack_name].get("energy", {})
+        )
+        if not attack_cost:
+            # If no energy cost defined, can always use attack
+            return True
 
         # Check specific energy requirements
         for energy_type, cost in attack_cost.items():
@@ -1454,30 +1494,53 @@ class Attack:
         # Check colorless energy requirement
         colorless_cost = attack_cost.get("colorless", 0)
         total_remaining_energy = sum(energies.values())
-        return total_remaining_energy >= colorless_cost
+
+        # Return explicit boolean
+        return bool(total_remaining_energy >= colorless_cost)
 
     @staticmethod
-    def attack_repr(name, damage, energy_cost):
+    def attack_repr(name: str, damage: int, energy_cost: Dict[str, int]) -> str:
+        """
+        Create a string representation of an attack.
+
+        Args:
+            name: The name of the attack
+            damage: The damage value of the attack
+            energy_cost: The energy cost of the attack
+
+        Returns:
+            A string representation of the attack
+        """
         return f"Attack(Name: {name}, Damage: {damage}, Energy Cost: {energy_cost})"
 
 
 # ------------------- SIDE EFFECTS ---------------------------------
-# ------------------- SIDE EFFECTS ---------------------------------
-# ------------------- SIDE EFFECTS ---------------------------------
 
 
 @apply_damage
-def psydrive(player):
-    player.active_card.remove_energy(EnergyType.PSYCHIC)
-    player.active_card.remove_energy(EnergyType.PSYCHIC)
+def psydrive(player: Any) -> None:
+    """
+    Implementation of the Psydrive attack.
+    Requires removing 2 psychic energy from the active card.
+    """
+    if hasattr(player, "active_card") and player.active_card:
+        player.active_card.remove_energy(EnergyType.PSYCHIC)
+        player.active_card.remove_energy(EnergyType.PSYCHIC)
 
 
-# ------------------- SIDE EFFECTS ---------------------------------
-# ------------------- SIDE EFFECTS ---------------------------------
-# ------------------- SIDE EFFECTS ---------------------------------
+# ------------------- GENERATOR FUNCTIONS ---------------------------------
 
 
-def generate_todo_attack_function(function_name):
+def generate_todo_attack_function(function_name: str) -> str:
+    """
+    Generate a TODO attack function.
+
+    Args:
+        function_name: The name of the attack function
+
+    Returns:
+        A string containing the attack function code
+    """
     return f"""
     @apply_damage
     def {function_name}(player):
@@ -1486,15 +1549,16 @@ def generate_todo_attack_function(function_name):
     """
 
 
-# Collect all the attacks that have a side effect
-specific_attack_methods = {}
-for attack_name, attack_info in ATTACKS.items():
-    if attack_info["has_side_effect"]:
-        function_name = attack_name.replace("-", "_")
-        specific_attack_methods[attack_name] = globals().get(function_name, None)
+def generate_general_attack_function(function_name: str) -> str:
+    """
+    Generate a general attack function.
 
+    Args:
+        function_name: The name of the attack function
 
-def generate_general_attack_function(function_name):
+    Returns:
+        A string containing the attack function code
+    """
     return f"""
     @apply_damage
     def {function_name}(player):
@@ -1502,8 +1566,25 @@ def generate_general_attack_function(function_name):
     """
 
 
-def add_tab_to_lines(text):
+def add_tab_to_lines(text: str) -> str:
+    """
+    Add a tab (4 spaces) to the beginning of each line in the text.
+
+    Args:
+        text: The text to add tabs to
+
+    Returns:
+        The text with tabs added
+    """
     return "\n".join("    " + line for line in text.splitlines())
+
+
+# Collect all the attacks that have a side effect
+specific_attack_methods = {}
+for attack_name, attack_info in ATTACKS.items():
+    if attack_info["has_side_effect"]:
+        function_name = attack_name.replace("-", "_")
+        specific_attack_methods[attack_name] = globals().get(function_name, None)
 
 
 # Dynamically create static methods for each attack

@@ -3,7 +3,7 @@ from .player import Player
 from .attack import Attack
 from .action import Action, ActionType
 from .data_collector import DataCollector
-from typing import List, Tuple, Dict, Any
+from typing import List, Tuple, Dict, Any, Optional
 import copy
 
 
@@ -30,26 +30,27 @@ class Match:
         self,
         starting_player: Player,
         second_player: Player,
-        data_collector=None,
-    ):
+        data_collector: Optional[DataCollector] = None,
+    ) -> None:
         """
         Initializes a match between two players.
 
         Args:
             starting_player (Player): The player who will start the match.
             second_player (Player): The player who will play second.
+            data_collector (Optional[DataCollector]): The data collector to use.
         """
         starting_player.set_opponent(second_player)
         second_player.set_opponent(starting_player)
         self.starting_player: Player = starting_player
         self.second_player: Player = second_player
 
-        self.data_collector: DataCollector = data_collector
+        self.data_collector: Optional[DataCollector] = data_collector
 
         self.turn: int = 0  # The current turn number
-        self.game_over = False
+        self.game_over: bool = False
 
-    def start_turn(self):
+    def start_turn(self) -> bool:
         """
         Starts a new turn in the match.
 
@@ -89,7 +90,9 @@ class Match:
             print("Game terminated at turn 1000 due to infinite loop")
             self.game_over = True
 
-    def play_one_match(self):
+        return self.game_over
+
+    def play_one_match(self) -> None:
         """
         Plays one complete match until the game is over.
         """
@@ -122,7 +125,7 @@ class Match:
         best_evaluation = float("-inf")
         best_sequence = []
 
-        for evaluation, sequence, _ in all_actions:
+        for evaluation, sequence in all_actions:
             if evaluation > best_evaluation:
                 best_evaluation = evaluation
                 best_sequence = sequence
@@ -134,7 +137,7 @@ class Match:
         Simulates all possible combinations of actions for this turn.
 
         Args:
-            match (Match): The current match.
+            player (Player): The player to simulate for.
 
         Returns:
             List[Tuple[int, List[Action]]]: A list of all possible sequences of actions.
@@ -146,12 +149,16 @@ class Match:
         player_copy.print_actions = False
         player_copy.evaluate_actions = False
 
-        player_copy.setup_turn(self.turn)
+        # Manually setting up the player's turn since we can't use setup_turn with an int
+        player_copy.has_added_energy = False
+        player_copy.has_used_trainer = False
 
         # Update conditions
         if player_copy.active_card:
             player_copy.active_card.update_conditions()
-        elif self.turn > 2:
+            if match_copy.turn > 2:
+                player_copy.active_card.can_evolve = True
+        elif match_copy.turn > 2:
             # If active card is knocked out and there are no cards on the bench
             # Game over
             if len(player_copy.bench) == 0:
@@ -199,9 +206,9 @@ class Match:
         Args:
             match (Match): The current match.
             player (Player): The player whose actions are being simulated.
-            actions (List[Action]): The list of actions to simulate.
             current_sequence (List[Action]): The current sequence of actions taken.
-            all_sequences (List[List[Action]]): The list to store all possible sequences of actions.
+            all_sequences (List[Tuple[int, List[Action]]]): The list to store all possible sequences of actions.
+            depth (int): The current recursion depth.
         """
 
         if depth > 10:
@@ -225,7 +232,7 @@ class Match:
             else:
                 # If no new actions, add the current sequence to all_sequences
                 evaluation = Player.evaluate_player(player_copy)
-                all_sequences.append((evaluation, new_sequence, depth))
+                all_sequences.append((evaluation, new_sequence))
 
-    def __repr__(self):
-        return f"Match(Players: {self.players}, Deck: {self.deck})"
+    def __repr__(self) -> str:
+        return f"Match(starting_player={self.starting_player.name}, second_player={self.second_player.name}, turn={self.turn})"

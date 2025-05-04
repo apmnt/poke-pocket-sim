@@ -1,0 +1,477 @@
+from enum import Enum
+from typing import Dict, Any
+
+
+class EnergyType(Enum):
+    """Energy types in the game."""
+
+    WATER = "water"
+    FIRE = "fire"
+    GRASS = "grass"
+    ELECTRIC = "electric"
+    PSYCHIC = "psychic"
+    FIGHTING = "fighting"
+    DARKNESS = "darkness"
+    METAL = "metal"
+    COLORLESS = "colorless"
+    ANY = "any"
+
+
+# Attack data dictionary with damage values and energy costs
+ATTACKS: Dict[str, Dict[str, Any]] = {
+    "absorb": {
+        "damage": 40,
+        "energy": {"colorless": 1, "grass": 1},
+        "has_side_effect": True,
+    },
+    "amass": {"damage": 0, "energy": {"metal": 1}, "has_side_effect": True},
+    "ancient_whirlpool": {
+        "damage": 70,
+        "energy": {"colorless": 2, "water": 1},
+        "has_side_effect": True,
+    },
+    "aqua_edge": {"damage": 70, "energy": {"water": 2}, "has_side_effect": False},
+    "attach": {"damage": 10, "energy": {"colorless": 1}, "has_side_effect": False},
+    "barrier_attack": {
+        "damage": 30,
+        "energy": {"colorless": 1, "psychic": 1},
+        "has_side_effect": True,
+    },
+    "bite": {"damage": 20, "energy": {"colorless": 2}, "has_side_effect": False},
+    "blizzard": {"damage": 80, "energy": {"water": 3}, "has_side_effect": True},
+    "blot": {"damage": 10, "energy": {"grass": 1}, "has_side_effect": True},
+    "bone_beatdown": {
+        "damage": 40,
+        "energy": {"fighting": 1},
+        "has_side_effect": False,
+    },
+    "bonemerang": {"damage": 80, "energy": {"fighting": 2}, "has_side_effect": True},
+    "bother": {"damage": 50, "energy": {"psychic": 1}, "has_side_effect": True},
+    "bubble_drain": {
+        "damage": 60,
+        "energy": {"colorless": 2, "water": 1},
+        "has_side_effect": True,
+    },
+    "bug_bite": {"damage": 30, "energy": {"colorless": 2}, "has_side_effect": False},
+    "call_for_family": {
+        "damage": 0,
+        "energy": {"darkness": 1},
+        "has_side_effect": True,
+    },
+    "circle_circuit": {
+        "damage": 30,
+        "energy": {"lightning": 2},
+        "has_side_effect": True,
+    },
+    "combustion": {"damage": 30, "energy": {"fire": 1}, "has_side_effect": False},
+    "continuous_lick": {
+        "damage": 60,
+        "energy": {"colorless": 3},
+        "has_side_effect": True,
+    },
+    "copy_anything": {"damage": 0, "energy": {"colorless": 1}, "has_side_effect": True},
+    "corner": {
+        "damage": 60,
+        "energy": {"colorless": 1, "darkness": 1},
+        "has_side_effect": True,
+    },
+    "crimson_storm": {
+        "damage": 200,
+        "energy": {"colorless": 2, "fire": 2},
+        "has_side_effect": True,
+    },
+    "crunch": {"damage": 20, "energy": {"metal": 1}, "has_side_effect": True},
+    "dig": {"damage": 40, "energy": {"fighting": 1}, "has_side_effect": True},
+    "dizzy_punch": {"damage": 30, "energy": {"colorless": 1}, "has_side_effect": True},
+    "do_the_wave": {"damage": 30, "energy": {"colorless": 3}, "has_side_effect": True},
+    "double_edge": {
+        "damage": 150,
+        "energy": {"colorless": 3, "fighting": 1},
+        "has_side_effect": True,
+    },
+    "double_horn": {"damage": 50, "energy": {"grass": 2}, "has_side_effect": True},
+    "double_lariat": {
+        "damage": 100,
+        "energy": {"colorless": 2, "psychic": 2},
+        "has_side_effect": True,
+    },
+    "draco_meteor": {
+        "damage": 0,
+        "energy": {"colorless": 2, "lightning": 1, "water": 1},
+        "has_side_effect": True,
+    },
+    "drill_peck": {"damage": 40, "energy": {"colorless": 1}, "has_side_effect": False},
+    "drill_run": {"damage": 50, "energy": {"colorless": 2}, "has_side_effect": True},
+    "drool": {
+        "damage": 40,
+        "energy": {"colorless": 1, "grass": 1},
+        "has_side_effect": False,
+    },
+    "electro_ball": {
+        "damage": 70,
+        "energy": {"lightning": 2},
+        "has_side_effect": False,
+    },
+    "ember": {"damage": 30, "energy": {"fire": 1}, "has_side_effect": True},
+    "fight_back": {"damage": 40, "energy": {"fighting": 2}, "has_side_effect": True},
+    "find_a_friend": {"damage": 0, "energy": {"colorless": 1}, "has_side_effect": True},
+    "fire_blast": {
+        "damage": 130,
+        "energy": {"colorless": 3, "fire": 1},
+        "has_side_effect": True,
+    },
+    "fire_claws": {
+        "damage": 60,
+        "energy": {"colorless": 1, "fire": 1},
+        "has_side_effect": False,
+    },
+    "fire_mane": {"damage": 40, "energy": {"fire": 1}, "has_side_effect": False},
+    "fire_spin": {
+        "damage": 150,
+        "energy": {"colorless": 2, "fire": 2},
+        "has_side_effect": True,
+    },
+    "flamethrower": {"damage": 90, "energy": {"fire": 2}, "has_side_effect": True},
+    "flap": {"damage": 30, "energy": {"colorless": 2}, "has_side_effect": False},
+    "flare": {"damage": 20, "energy": {"fire": 1}, "has_side_effect": False},
+    "flop": {"damage": 10, "energy": {"colorless": 1}, "has_side_effect": False},
+    "gentle_slap": {"damage": 20, "energy": {"water": 1}, "has_side_effect": False},
+    "giant_bloom": {
+        "damage": 100,
+        "energy": {"colorless": 2, "grass": 2},
+        "has_side_effect": True,
+    },
+    "glide": {"damage": 10, "energy": {"colorless": 1}, "has_side_effect": False},
+    "gnaw": {"damage": 10, "energy": {"colorless": 1}, "has_side_effect": False},
+    "growl": {"damage": 0, "energy": {"colorless": 1}, "has_side_effect": True},
+    "gust": {"damage": 10, "energy": {"colorless": 1}, "has_side_effect": False},
+    "head_bolt": {"damage": 40, "energy": {"lightning": 1}, "has_side_effect": False},
+    "headache": {"damage": 10, "energy": {"colorless": 1}, "has_side_effect": True},
+    "headbutt": {"damage": 30, "energy": {"colorless": 2}, "has_side_effect": False},
+    "heart_stamp": {
+        "damage": 60,
+        "energy": {"colorless": 1, "psychic": 1},
+        "has_side_effect": False,
+    },
+    "heat_blast": {
+        "damage": 70,
+        "energy": {"colorless": 2, "fire": 1},
+        "has_side_effect": False,
+    },
+    "heat_tackle": {
+        "damage": 100,
+        "energy": {"colorless": 1, "fire": 2},
+        "has_side_effect": True,
+    },
+    "heavy_impact": {
+        "damage": 120,
+        "energy": {"colorless": 1, "metal": 3},
+        "has_side_effect": False,
+    },
+    "horn_attack": {
+        "damage": 40,
+        "energy": {"colorless": 1, "darkness": 1},
+        "has_side_effect": False,
+    },
+    "horn_drill": {
+        "damage": 100,
+        "energy": {"colorless": 1, "fighting": 3},
+        "has_side_effect": False,
+    },
+    "horn_hazard": {"damage": 80, "energy": {"water": 1}, "has_side_effect": True},
+    "hydro_bazooka": {
+        "damage": 100,
+        "energy": {"colorless": 1, "water": 2},
+        "has_side_effect": True,
+    },
+    "hydro_pump": {
+        "damage": 80,
+        "energy": {"colorless": 1, "water": 2},
+        "has_side_effect": True,
+    },
+    "hydro_splash": {"damage": 90, "energy": {"water": 2}, "has_side_effect": False},
+    "hyper_beam": {"damage": 100, "energy": {"water": 4}, "has_side_effect": True},
+    "hyper_voice": {"damage": 60, "energy": {"colorless": 2}, "has_side_effect": False},
+    "ice_beam": {
+        "damage": 60,
+        "energy": {"colorless": 1, "water": 2},
+        "has_side_effect": True,
+    },
+    "ice_wing": {
+        "damage": 40,
+        "energy": {"colorless": 1, "water": 1},
+        "has_side_effect": False,
+    },
+    "inferno_dance": {"damage": 0, "energy": {"fire": 1}, "has_side_effect": True},
+    "inferno_onrush": {
+        "damage": 120,
+        "energy": {"colorless": 1, "fire": 2},
+        "has_side_effect": True,
+    },
+    "jab": {"damage": 30, "energy": {"fighting": 1}, "has_side_effect": False},
+    "knock_back": {
+        "damage": 70,
+        "energy": {"colorless": 1, "fighting": 2},
+        "has_side_effect": True,
+    },
+    "knuckle_punch": {
+        "damage": 20,
+        "energy": {"fighting": 1},
+        "has_side_effect": False,
+    },
+    "ko_crab": {
+        "damage": 80,
+        "energy": {"colorless": 1, "water": 2},
+        "has_side_effect": True,
+    },
+    "land_crush": {"damage": 70, "energy": {"fighting": 3}, "has_side_effect": False},
+    "leaf_supply": {"damage": 50, "energy": {"grass": 2}, "has_side_effect": True},
+    "leech_life": {"damage": 50, "energy": {"fighting": 1}, "has_side_effect": True},
+    "leek_slap": {"damage": 40, "energy": {"colorless": 1}, "has_side_effect": False},
+    "lightning_ball": {
+        "damage": 20,
+        "energy": {"lightning": 1},
+        "has_side_effect": False,
+    },
+    "lovestrike": {
+        "damage": 80,
+        "energy": {"colorless": 1, "darkness": 2},
+        "has_side_effect": True,
+    },
+    "low_kick": {"damage": 20, "energy": {"fighting": 1}, "has_side_effect": False},
+    "magical_shot": {"damage": 40, "energy": {"psychic": 1}, "has_side_effect": False},
+    "magma_punch": {"damage": 50, "energy": {"fire": 2}, "has_side_effect": False},
+    "mega_drain": {
+        "damage": 80,
+        "energy": {"colorless": 2, "grass": 2},
+        "has_side_effect": True,
+    },
+    "mega_punch": {
+        "damage": 50,
+        "energy": {"colorless": 2, "psychic": 1},
+        "has_side_effect": False,
+    },
+    "metal_claw": {"damage": 70, "energy": {"metal": 2}, "has_side_effect": False},
+    "mist_slash": {
+        "damage": 60,
+        "energy": {"colorless": 1, "water": 1},
+        "has_side_effect": False,
+    },
+    "mud_slap": {"damage": 20, "energy": {"fighting": 1}, "has_side_effect": False},
+    "mumble": {
+        "damage": 30,
+        "energy": {"colorless": 1, "psychic": 1},
+        "has_side_effect": False,
+    },
+    "pay_day": {"damage": 10, "energy": {"colorless": 1}, "has_side_effect": True},
+    "peck": {"damage": 20, "energy": {"darkness": 1}, "has_side_effect": False},
+    "pierce": {"damage": 30, "energy": {"metal": 1}, "has_side_effect": False},
+    "pin_missile": {
+        "damage": 40,
+        "energy": {"colorless": 1, "lightning": 1},
+        "has_side_effect": True,
+    },
+    "poison_gas": {"damage": 10, "energy": {"darkness": 1}, "has_side_effect": True},
+    "poison_horn": {
+        "damage": 90,
+        "energy": {"colorless": 1, "darkness": 2},
+        "has_side_effect": True,
+    },
+    "poison_powder": {"damage": 30, "energy": {"grass": 1}, "has_side_effect": True},
+    "poison_tentacles": {
+        "damage": 50,
+        "energy": {"colorless": 1, "water": 1},
+        "has_side_effect": True,
+    },
+    "pound": {"damage": 20, "energy": {"colorless": 1}, "has_side_effect": False},
+    "powder_snow": {
+        "damage": 40,
+        "energy": {"colorless": 1, "water": 1},
+        "has_side_effect": True,
+    },
+    "power_blast": {
+        "damage": 120,
+        "energy": {"colorless": 2, "psychic": 2},
+        "has_side_effect": True,
+    },
+    "primal_wingbeat": {
+        "damage": 0,
+        "energy": {"colorless": 2},
+        "has_side_effect": True,
+    },
+    "psy_report": {"damage": 20, "energy": {"psychic": 1}, "has_side_effect": True},
+    "psychic": {
+        "damage": 30,
+        "energy": {"colorless": 1, "psychic": 1},
+        "has_side_effect": True,
+    },
+    "psychic_sphere": {
+        "damage": 50,
+        "energy": {"colorless": 1, "psychic": 1},
+        "has_side_effect": False,
+    },
+    "psydrive": {
+        "damage": 150,
+        "energy": {"colorless": 2, "psychic": 2},
+        "has_side_effect": True,
+    },
+    "psypunch": {
+        "damage": 50,
+        "energy": {"colorless": 1, "psychic": 2},
+        "has_side_effect": False,
+    },
+    "psyshot": {
+        "damage": 60,
+        "energy": {"colorless": 1, "psychic": 2},
+        "has_side_effect": False,
+    },
+    "quick_attack": {"damage": 40, "energy": {"colorless": 2}, "has_side_effect": True},
+    "raging_thunder": {
+        "damage": 100,
+        "energy": {"colorless": 1, "lightning": 2},
+        "has_side_effect": True,
+    },
+    "rain_splash": {"damage": 30, "energy": {"water": 1}, "has_side_effect": False},
+    "ram": {"damage": 20, "energy": {"grass": 1}, "has_side_effect": False},
+    "razor_fin": {"damage": 10, "energy": {"colorless": 1}, "has_side_effect": False},
+    "razor_leaf": {
+        "damage": 70,
+        "energy": {"colorless": 2, "grass": 1},
+        "has_side_effect": False,
+    },
+    "reckless_charge": {
+        "damage": 30,
+        "energy": {"fighting": 1},
+        "has_side_effect": True,
+    },
+    "rolling_tackle": {
+        "damage": 80,
+        "energy": {"colorless": 3},
+        "has_side_effect": False,
+    },
+    "rollout": {
+        "damage": 70,
+        "energy": {"colorless": 2, "fighting": 1},
+        "has_side_effect": False,
+    },
+    "scratch": {
+        "damage": 30,
+        "energy": {"colorless": 1, "grass": 1},
+        "has_side_effect": False,
+    },
+    "second_strike": {
+        "damage": 10,
+        "energy": {"colorless": 1, "water": 1},
+        "has_side_effect": True,
+    },
+    "seed_bomb": {"damage": 20, "energy": {"grass": 1}, "has_side_effect": False},
+    "seismic_toss": {
+        "damage": 100,
+        "energy": {"fighting": 3},
+        "has_side_effect": False,
+    },
+    "shadow_claw": {"damage": 40, "energy": {"colorless": 2}, "has_side_effect": True},
+    "sharp_scythe": {"damage": 30, "energy": {"grass": 1}, "has_side_effect": False},
+    "sharp_sting": {"damage": 70, "energy": {"grass": 1}, "has_side_effect": False},
+    "sharpen": {"damage": 20, "energy": {"colorless": 1}, "has_side_effect": False},
+    "shell_attack": {"damage": 40, "energy": {"fighting": 1}, "has_side_effect": False},
+    "sing": {"damage": 0, "energy": {"colorless": 1}, "has_side_effect": True},
+    "sky_attack": {
+        "damage": 130,
+        "energy": {"colorless": 2, "fire": 1},
+        "has_side_effect": True,
+    },
+    "slap": {"damage": 20, "energy": {"psychic": 1}, "has_side_effect": False},
+    "slash": {
+        "damage": 80,
+        "energy": {"colorless": 1, "grass": 2},
+        "has_side_effect": False,
+    },
+    "sleepy_song": {"damage": 80, "energy": {"colorless": 3}, "has_side_effect": True},
+    "smack": {"damage": 20, "energy": {"water": 1}, "has_side_effect": False},
+    "soothing_scent": {
+        "damage": 80,
+        "energy": {"colorless": 1, "grass": 2},
+        "has_side_effect": True,
+    },
+    "spinning_attack": {
+        "damage": 60,
+        "energy": {"colorless": 3, "lightning": 1},
+        "has_side_effect": False,
+    },
+    "spiral_kick": {"damage": 40, "energy": {"colorless": 1}, "has_side_effect": False},
+    "splash": {"damage": 10, "energy": {"colorless": 1}, "has_side_effect": False},
+    "spooky_shot": {"damage": 100, "energy": {"psychic": 3}, "has_side_effect": False},
+    "sting": {"damage": 20, "energy": {"grass": 1}, "has_side_effect": False},
+    "stomp": {"damage": 30, "energy": {"grass": 1}, "has_side_effect": True},
+    "strength": {"damage": 50, "energy": {"fighting": 2}, "has_side_effect": False},
+    "stretch_kick": {"damage": 0, "energy": {"fighting": 1}, "has_side_effect": True},
+    "suffocating_gas": {
+        "damage": 20,
+        "energy": {"psychic": 1},
+        "has_side_effect": False,
+    },
+    "super_psy_bolt": {
+        "damage": 60,
+        "energy": {"colorless": 2, "psychic": 1},
+        "has_side_effect": False,
+    },
+    "surf": {"damage": 90, "energy": {"water": 3}, "has_side_effect": False},
+    "surprise_attack": {
+        "damage": 40,
+        "energy": {"colorless": 1},
+        "has_side_effect": True,
+    },
+    "tackle": {"damage": 20, "energy": {"grass": 1}, "has_side_effect": False},
+    "tail_smack": {"damage": 20, "energy": {"colorless": 1}, "has_side_effect": False},
+    "tail_whap": {"damage": 20, "energy": {"lightning": 1}, "has_side_effect": False},
+    "tail_whip": {"damage": 0, "energy": {"colorless": 1}, "has_side_effect": True},
+    "teleport": {"damage": 0, "energy": {"colorless": 1}, "has_side_effect": True},
+    "thunder_fang": {
+        "damage": 80,
+        "energy": {"colorless": 1, "lightning": 2},
+        "has_side_effect": True,
+    },
+    "thunder_punch": {
+        "damage": 40,
+        "energy": {"lightning": 2},
+        "has_side_effect": True,
+    },
+    "thunder_shock": {
+        "damage": 30,
+        "energy": {"lightning": 2},
+        "has_side_effect": True,
+    },
+    "thunder_spear": {"damage": 0, "energy": {"lightning": 1}, "has_side_effect": True},
+    "thunderbolt": {"damage": 140, "energy": {"lightning": 3}, "has_side_effect": True},
+    "thundering_hurricane": {
+        "damage": 50,
+        "energy": {"lightning": 3},
+        "has_side_effect": True,
+    },
+    "tiny_charge": {"damage": 30, "energy": {"lightning": 1}, "has_side_effect": False},
+    "tongue_slap": {"damage": 20, "energy": {"water": 1}, "has_side_effect": False},
+    "tropical_swing": {"damage": 40, "energy": {"grass": 1}, "has_side_effect": True},
+    "venoshock": {
+        "damage": 70,
+        "energy": {"colorless": 1, "darkness": 2},
+        "has_side_effect": True,
+    },
+    "vine_whip": {"damage": 20, "energy": {"grass": 1}, "has_side_effect": False},
+    "vise_grip": {
+        "damage": 40,
+        "energy": {"colorless": 1, "water": 1},
+        "has_side_effect": False,
+    },
+    "water_arrow": {"damage": 0, "energy": {"water": 3}, "has_side_effect": True},
+    "water_drip": {"damage": 30, "energy": {"colorless": 1}, "has_side_effect": False},
+    "water_gun": {"damage": 40, "energy": {"water": 1}, "has_side_effect": False},
+    "wave_splash": {
+        "damage": 40,
+        "energy": {"colorless": 1, "water": 1},
+        "has_side_effect": False,
+    },
+    "will_o_wisp": {"damage": 30, "energy": {"psychic": 1}, "has_side_effect": False},
+    "wing_attack": {"damage": 70, "energy": {"colorless": 3}, "has_side_effect": False},
+    "zap_kick": {"damage": 20, "energy": {"lightning": 1}, "has_side_effect": False},
+}
