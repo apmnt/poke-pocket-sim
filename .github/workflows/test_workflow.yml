@@ -31,8 +31,7 @@ jobs:
           # Change reviewdog reporter if you need [github-pr-check,github-check,github-pr-review].
           reporter: github-pr-review
           level: warning
-          workdir: .
-          mypy_flags: pokepocketsim
+          workdir: pokepocketsim
 
       - name: Run tests
         run: |
