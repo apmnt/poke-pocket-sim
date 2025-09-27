@@ -29,7 +29,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # Change reviewdog reporter if you need [github-pr-check,github-check,github-pr-review].
-          reporter: github-pr-check
+          reporter: github-pr-review
           level: warning
           workdir: pokepocketsim
 
