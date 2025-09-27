@@ -24,6 +24,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r dev-requirements.txt
 
+      - name: Run mypy
+        uses: tsuyoshicho/action-mypy@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Change reviewdog reporter if you need [github-pr-check,github-check,github-pr-review].
+          reporter: github-pr-check
+          level: warning
+          workdir: pokepocketsim
+
       - name: Run tests
         run: |
           pytest
