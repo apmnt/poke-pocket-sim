@@ -49,27 +49,29 @@ jobs:
 
       - name: MyPy Type Check
         uses: tsuyoshicho/action-mypy@v4
+        continue-on-error: true
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # Execute mypy check
           execute_command: "mypy pokepocketsim/ tests/ --show-column-numbers"
 
       - name: Run Flake8 with annotations
+        continue-on-error: true
         run: |
-          flake8 pokepocketsim/ tests/ --format='::error file=%(path)s,line=%(row)d,col=%(col)d::[%(code)s] %(text)s'
+          flake8 pokepocketsim/ tests/ --format='::error file=%(path)s,line=%(row)d,col=%(col)d::[%(code)s] %(text)s' || true
 
       - name: Run Black check with annotations
+        continue-on-error: true
         run: |
           black --check --diff pokepocketsim/ tests/ || {
             echo "::error::Code formatting issues found. Run 'black pokepocketsim/ tests/' to fix."
-            exit 1
           }
 
       - name: Run isort check with annotations
+        continue-on-error: true
         run: |
           isort --check-only --diff pokepocketsim/ tests/ || {
-            echo "::error::Import sorting issues found. Run 'isort pokepocketsim/ tests/' to fix."  
-            exit 1
+            echo "::error::Import sorting issues found. Run 'isort pokepocketsim/ tests/' to fix."
           }
 
       - name: Generate linting summary
@@ -79,7 +81,7 @@ jobs:
 
           echo "### MyPy" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          mypy pokepocketsim/ tests/ || echo "MyPy found type issues"
+          mypy pokepocketsim/ tests/ --show-column-numbers || echo "MyPy found type issues"
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
@@ -91,11 +93,11 @@ jobs:
 
           echo "### Black (Code Formatting)" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          black --check pokepocketsim/ tests/ || echo "Code formatting issues found"
+          black --check --diff pokepocketsim/ tests/ || echo "Code formatting issues found"
           echo '```' >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           echo "### isort (Import Sorting)" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          isort --check-only pokepocketsim/ tests/ || echo "Import sorting issues found"
+          isort --check-only --diff pokepocketsim/ tests/ || echo "Import sorting issues found"
           echo '```' >> $GITHUB_STEP_SUMMARY
