@@ -47,18 +47,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r dev-requirements.txt
 
-      - name: MyPy Type Check
-        uses: tsuyoshicho/action-mypy@v4
+      - name: MyPy (GitHub annotations)
         continue-on-error: true
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          # Execute mypy check
-          execute_command: "mypy pokepocketsim/ tests/ --show-column-numbers"
+        run: |
+          mypy pokepocketsim/ tests/ --show-column-numbers --error-format=github
 
       - name: Run Flake8 with annotations
         continue-on-error: true
         run: |
-          flake8 pokepocketsim/ tests/ --format='::error file=%(path)s,line=%(row)d,col=%(col)d::[%(code)s] %(text)s' || true
+          flake8 pokepocketsim/ tests/ \
+            --format='::error file=%(path)s,line=%(row)d,col=%(col)d::[%(code)s] %(text)s'
 
       - name: Run Black check with annotations
         continue-on-error: true
