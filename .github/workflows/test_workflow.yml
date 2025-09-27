@@ -1,4 +1,4 @@
-name: Pytests
+name: CI
 on:
   push:
     branches: [main]
@@ -6,8 +6,9 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+    name: Tests
 
     steps:
       - name: Checkout repository
@@ -26,3 +27,77 @@ jobs:
       - name: Run tests
         run: |
           pytest
+
+  lint:
+    runs-on: ubuntu-latest
+    name: Linting
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r dev-requirements.txt
+
+      - name: Setup reviewdog
+        uses: reviewdog/action-setup@v1
+
+      - name: Run mypy with reviewdog
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mypy pokepocketsim/ tests/ --show-column-numbers --no-error-summary | reviewdog -efm="%f:%l:%c: %t%*[^:]: %m" -name="mypy" -reporter=github-pr-review -level=warning
+
+      - name: Run flake8 with reviewdog
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          flake8 pokepocketsim/ tests/ --format='%(path)s:%(row)d:%(col)d: %(code)s %(text)s' | reviewdog -efm="%f:%l:%c: %m" -name="flake8" -reporter=github-pr-review -level=info
+
+      - name: Check code formatting with black
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          black --check --diff pokepocketsim/ tests/ | reviewdog -efm="%f" -name="black" -reporter=github-pr-review -level=info || true
+
+      - name: Check import sorting with isort
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          isort --check-only --diff pokepocketsim/ tests/ | reviewdog -efm="%f" -name="isort" -reporter=github-pr-review -level=info || true
+
+      - name: Generate linting summary
+        run: |
+          echo "## Linting Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### MyPy" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          mypy pokepocketsim/ tests/ || echo "MyPy found type issues"
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### Flake8" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          flake8 pokepocketsim/ tests/ || echo "Flake8 found style issues"
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### Black (Code Formatting)" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          black --check pokepocketsim/ tests/ || echo "Code formatting issues found"
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### isort (Import Sorting)" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          isort --check-only pokepocketsim/ tests/ || echo "Import sorting issues found"
+          echo '```' >> $GITHUB_STEP_SUMMARY
