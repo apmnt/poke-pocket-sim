@@ -3,7 +3,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Type
 
 if TYPE_CHECKING:
-    from .player import Player
+    from player import Player
 
 
 class ActionType(Enum):
@@ -30,12 +30,12 @@ class Action:
         item_class: Optional[Type[Any]] = None,
     ):
         self.name: str = name
-        self.function: Callable[..., Any] = function
+        self.function = function
         self.action_type: ActionType = action_type
         self.can_continue_turn: bool = can_continue_turn
-        self.item_class: Optional[Type[Any]] = item_class
+        self.item_class = item_class
 
-    def act(self, player: "Player") -> bool:
+    def act(self, player: "Player"):
         if player.print_actions:
             print(f"Acting: {self.name}")
         if self.action_type == ActionType.ITEM:
@@ -58,14 +58,16 @@ class Action:
             "item_class": self.item_class.__name__ if self.item_class else None,
         }
 
-    def serialize(self: "Action") -> dict[str, Any]:
+    def serialize(self):
         return self.to_dict()
 
-    def __repr__(self: "Action") -> str:
+    def __repr__(self):
         return f"Action(Name: {self.name}, Type: {self.action_type})"
 
     @staticmethod
-    def find_action(action_list: List["Action"], action_to_find: "Action") -> "Action":
+    def find_action(
+        action_list: List["Action"], action_to_find: "Action"
+    ) -> Optional["Action"]:
         for action in action_list:
             if all(
                 [
