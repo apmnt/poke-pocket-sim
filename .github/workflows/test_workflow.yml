@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -35,7 +35,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -47,32 +47,30 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r dev-requirements.txt
 
-      - name: Setup reviewdog
-        uses: reviewdog/action-setup@v1
+      - name: MyPy Type Check
+        uses: tsuyoshicho/action-mypy@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Execute mypy check
+          execute_command: "mypy pokepocketsim/ tests/ --show-column-numbers"
 
-      - name: Run mypy with reviewdog
-        env:
-          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run Flake8 with annotations
         run: |
-          mypy pokepocketsim/ tests/ --show-column-numbers --no-error-summary | reviewdog -efm="%f:%l:%c: %t%*[^:]: %m" -name="mypy" -reporter=github-pr-review -level=warning
+          flake8 pokepocketsim/ tests/ --format='::error file=%(path)s,line=%(row)d,col=%(col)d::[%(code)s] %(text)s'
 
-      - name: Run flake8 with reviewdog
-        env:
-          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run Black check with annotations
         run: |
-          flake8 pokepocketsim/ tests/ --format='%(path)s:%(row)d:%(col)d: %(code)s %(text)s' | reviewdog -efm="%f:%l:%c: %m" -name="flake8" -reporter=github-pr-review -level=info
+          black --check --diff pokepocketsim/ tests/ || {
+            echo "::error::Code formatting issues found. Run 'black pokepocketsim/ tests/' to fix."
+            exit 1
+          }
 
-      - name: Check code formatting with black
-        env:
-          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run isort check with annotations
         run: |
-          black --check --diff pokepocketsim/ tests/ | reviewdog -efm="%f" -name="black" -reporter=github-pr-review -level=info || true
-
-      - name: Check import sorting with isort
-        env:
-          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          isort --check-only --diff pokepocketsim/ tests/ | reviewdog -efm="%f" -name="isort" -reporter=github-pr-review -level=info || true
+          isort --check-only --diff pokepocketsim/ tests/ || {
+            echo "::error::Import sorting issues found. Run 'isort pokepocketsim/ tests/' to fix."  
+            exit 1
+          }
 
       - name: Generate linting summary
         run: |
