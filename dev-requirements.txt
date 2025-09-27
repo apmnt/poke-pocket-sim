@@ -1,2 +1,5 @@
 mypy>=1.9.0
 pytest
+black
+flake8
+isort
