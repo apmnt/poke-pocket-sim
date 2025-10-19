@@ -20,6 +20,7 @@ from .attack import Attack
 from .attack_common import EnergyType
 from .protocols import ICard, IPlayer
 from .utils import color_print as cprint
+from .utils import config
 
 if TYPE_CHECKING:
     from .deck import Deck
@@ -150,6 +151,8 @@ class Player:
         if self.print_actions:
             print(cprint.get("Possible actions:", cprint.YELLOW))
             for i, action in enumerate(actions):
+                if config.debug == False:
+                    action = action.name
                 print(f"\t{i}: {action}")
 
     def process_best_actions(
