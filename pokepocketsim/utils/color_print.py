@@ -56,7 +56,7 @@ def get(text: str, color: str) -> str:
         str: Colored string with reset code
     
     Example:
-        >>> get_color_string("Hello", RED)
+        >>> get_color_string("Hello World", RED)
         '\\033[31mHello World\\033[0m'
     """
     return f"{color}{text}{RESET}"
