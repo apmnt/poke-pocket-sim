@@ -605,7 +605,8 @@ class Player:
 
         # Prints
         if self.print_actions:
-            print(f"{self.cname} active card: {self.active_card}")
+
+            print(f"{self.cname} active card: " + cprint.get(self.active_card, cprint.GREEN))
             print(f"{self.cname} hand: ")
             for c in self.hand:
                 print("\t", c)
