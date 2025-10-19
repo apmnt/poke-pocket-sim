@@ -1,3 +1,4 @@
+import os
 import random
 from .player import Player
 from .attack import Attack
@@ -5,7 +6,6 @@ from .action import Action, ActionType
 from .data_collector import DataCollector
 from typing import List, Tuple, Dict, Any, Optional
 import copy
-
 
 class Match:
     """
@@ -66,8 +66,11 @@ class Match:
         else:
             active_player = self.starting_player
             non_active_player = self.second_player
+        
+        term_size = os.get_terminal_size()
+        print("-" * term_size.columns)
         print(
-            f"\n\nTurn {self.turn}, {active_player.name}'s turn, {self.starting_player.name} {self.starting_player.points} - {self.second_player.name} {self.second_player.points}"
+            f"Turn {self.turn}, {active_player.cname}'s turn, {self.starting_player.name} {self.starting_player.points} - {self.second_player.name} {self.second_player.points}"
         )
 
         self.game_over = active_player.start_turn(self)
