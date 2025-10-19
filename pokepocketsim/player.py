@@ -19,6 +19,7 @@ from .supporter import Supporter
 from .attack import Attack
 from .attack_common import EnergyType
 from .protocols import ICard, IPlayer
+from .utils import color_print as cprint
 
 if TYPE_CHECKING:
     from .deck import Deck
@@ -73,6 +74,8 @@ class Player:
         self.id: uuid.UUID = uuid.uuid4()
         self.evaluate_actions: bool = False
         self.print_actions: bool = True
+
+        self.cname = (cprint.get(self.name, cprint.RED) if self.name == "p1" else cprint.get(self.name, cprint.CYAN))
 
     @property
     def active_card_and_bench(self) -> List[Card]:
@@ -145,7 +148,7 @@ class Player:
 
     def print_possible_actions(self, actions: List[Action]) -> None:
         if self.print_actions:
-            print("Possible actions:")
+            print(cprint.get("Possible actions:", cprint.YELLOW))
             for i, action in enumerate(actions):
                 print(f"\t{i}: {action}")
 
@@ -602,11 +605,11 @@ class Player:
 
         # Prints
         if self.print_actions:
-            print(f"{self.name} active card: {self.active_card}")
-            print(f"{self.name} hand: ")
+            print(f"{self.cname} active card: {self.active_card}")
+            print(f"{self.cname} hand: ")
             for c in self.hand:
                 print("\t", c)
-            print(f"{self.name} bench: ")
+            print(f"{self.cname} bench: ")
             for c in self.bench:
                 print("\t", c)
 
