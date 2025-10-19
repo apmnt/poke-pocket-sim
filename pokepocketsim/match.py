@@ -4,6 +4,8 @@ from .player import Player
 from .attack import Attack
 from .action import Action, ActionType
 from .data_collector import DataCollector
+from .gui import GUI, tk
+from .utils import config
 from typing import List, Tuple, Dict, Any, Optional
 import copy
 
@@ -49,6 +51,12 @@ class Match:
 
         self.turn: int = 0  # The current turn number
         self.game_over: bool = False
+
+        # GUI setup
+        if config.gui_enabled:
+            self.root = tk.Tk()
+            self.gui = GUI(self.root)
+            self.gui.setup_gui()
 
     def start_turn(self) -> bool:
         """
