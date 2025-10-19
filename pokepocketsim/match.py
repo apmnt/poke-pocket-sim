@@ -56,7 +56,6 @@ class Match:
         if config.gui_enabled:
             self.root = tk.Tk()
             self.gui = GUI(self.root)
-            self.gui.setup_gui()
 
     def start_turn(self) -> bool:
         """
