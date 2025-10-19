@@ -1,5 +1,6 @@
 import os
 import random
+
 from .player import Player
 from .attack import Attack
 from .action import Action, ActionType
@@ -70,9 +71,17 @@ class Match:
         if self.turn % 2 == 0:
             active_player = self.second_player
             non_active_player = self.starting_player
+
+            if config.gui_enabled:
+                self.gui.turn_label['text'] = "Opponent's Turn"
+                self.gui.turn_label['bg'] = '#666666'
         else:
             active_player = self.starting_player
             non_active_player = self.second_player
+
+            if config.gui_enabled:
+                self.gui.turn_label['text'] = "Your Turn"
+                self.gui.turn_label['bg'] = self.gui.colors['accent']
         
         term_size = os.get_terminal_size()
         print("-" * term_size.columns)
