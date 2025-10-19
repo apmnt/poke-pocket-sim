@@ -8,7 +8,7 @@ class GUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Pokemon TCG Pocket Simulator")
-        self.root.geometry("400x700")
+        self.root.geometry("400x800")
         self.root.configure(bg='#1a1a2e')
         
         self.colors = {
@@ -135,7 +135,7 @@ class GUI:
             relief='raised',
             bd=1,
             width=100,
-            height=70
+            height=125
         )
         slot.pack_propagate(False)
         
