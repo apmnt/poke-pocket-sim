@@ -56,29 +56,7 @@ class Match:
         # GUI setup
         if config.gui_enabled:
             self.root = tk.Tk()
-            self.gui = GUI(self.root)
-
-    def update_gui(self):
-        # Update p1
-        if self.starting_player.active_card == None:
-            self.gui.player_active_card_empty.pack(pady=5)
-            self.gui.player_active_card.pack_forget()
-        else:
-            self.gui.player_active_card_empty.pack_forget()
-            self.gui.player_active_card.pack(pady=5)
-            self.gui.player_active_card.name_label['text'] = self.starting_player.active_card.name
-            self.gui.player_active_card.hp_label['text'] = str(self.starting_player.active_card.hp) + " HP"
-            # self.gui.player_active_card['bg'] = self.gui.colors[self.starting_player.active_card.type.name]
-
-        # Update p2
-        if self.second_player.active_card == None:
-            self.gui.opponent_active_card_empty.pack(pady=5)
-            self.gui.opponent_active_card.pack_forget()
-        else:
-            self.gui.opponent_active_card_empty.pack_forget()
-            self.gui.opponent_active_card.pack(pady=5)
-            self.gui.opponent_active_card.name_label['text'] = self.second_player.active_card.name
-            self.gui.opponent_active_card.hp_label['text'] = str(self.second_player.active_card.hp) + " HP"
+            self.gui = GUI(self.root, self.starting_player, self.second_player)
 
     def start_turn(self) -> bool:
         """
@@ -91,7 +69,7 @@ class Match:
         """
         # Update GUI
         if config.gui_enabled:
-            self.update_gui()
+            self.gui.update_gui(self.starting_player, self.second_player)
 
         # Start turn
         self.turn += 1

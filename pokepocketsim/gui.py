@@ -1,16 +1,18 @@
 import tkinter as tk
 from tkinter import ttk
-import random
 from PIL import Image, ImageTk
-import os
+from .player import Player
 
 class GUI:
-    def __init__(self, root):
+    def __init__(self, root, starting_player: Player, second_player: Player) -> None:
         self.root = root
         self.root.title("Pokemon TCG Pocket Simulator")
         self.root.geometry("400x800")
         self.root.configure(bg='#1a1a2e')
-        
+
+        self.starting_player = starting_player
+        self.second_player = second_player
+
         self.colors = {
             'bg_dark': '#1a1a2e',
             'bg_light': '#16213e',
@@ -100,7 +102,7 @@ class GUI:
             opponent_active_frame, 
             "Blastoise", 
             "130 HP", 
-            self.colors['energy_water'],
+            self.colors['WATER'],
             "Opponent Active"
         )
         self.opponent_active_card.pack(pady=5)
@@ -121,7 +123,7 @@ class GUI:
             player_active_frame, 
             "Blastoise", 
             "130 HP", 
-            self.colors['energy_water'],
+            self.colors['WATER'],
             "Your Active"
         )
         self.player_active_card.pack(pady=5)
@@ -221,3 +223,25 @@ class GUI:
         #     child.bind('<Button-1>', lambda e, c=name, t=slot_type: self.card_clicked(c, t))
         
         return card
+    
+    def update_gui(self, starting_player: Player, second_player: Player) -> None:
+        # Update p1
+        if self.starting_player.active_card == None:
+            self.player_active_card_empty.pack(pady=5)
+            self.player_active_card.pack_forget()
+        else:
+            self.player_active_card_empty.pack_forget()
+            self.player_active_card.pack(pady=5)
+            self.player_active_card.name_label['text'] = self.starting_player.active_card.name
+            self.player_active_card.hp_label['text'] = str(self.starting_player.active_card.hp) + " HP"
+            # self.player_active_card['bg'] = self.colors[self.starting_player.active_card.type.name]
+
+        # Update p2
+        if self.second_player.active_card == None:
+            self.opponent_active_card_empty.pack(pady=5)
+            self.opponent_active_card.pack_forget()
+        else:
+            self.opponent_active_card_empty.pack_forget()
+            self.opponent_active_card.pack(pady=5)
+            self.opponent_active_card.name_label['text'] = self.second_player.active_card.name
+            self.opponent_active_card.hp_label['text'] = str(self.second_player.active_card.hp) + " HP"   
