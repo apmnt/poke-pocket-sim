@@ -187,6 +187,7 @@ class GUI:
             self.player_active_card.plus_label.pack(expand=True)
             self.player_active_card.name_label.pack_forget()
             self.player_active_card.hp_label.pack_forget()
+            self.player_active_card['bg'] = self.colors['empty_slot_bg']
         else:
             self.player_active_card.plus_label.pack_forget()
             self.player_active_card.name_label.pack(pady=(8, 0))
@@ -203,23 +204,19 @@ class GUI:
             self.player_bench_arr[i]['bg'] = self.colors['empty_slot_bg']
 
         for i, card in enumerate(self.starting_player.bench):
-            if card is None:
-                self.player_bench_arr[i].plus_label.pack(expand=True)
-                self.player_bench_arr[i].name_label.pack_forget()
-                self.player_bench_arr[i].hp_label.pack_forget()
-            else:
-                self.player_bench_arr[i].plus_label.pack_forget()
-                self.player_bench_arr[i].name_label.pack(pady=(8, 0))
-                self.player_bench_arr[i].hp_label.pack()
-                self.player_bench_arr[i].name_label['text'] = card.name
-                self.player_bench_arr[i].hp_label['text'] = str(card.hp) + " HP"
-                self.player_bench_arr[i]['bg'] = self.colors[card.type.name]
+            self.player_bench_arr[i].plus_label.pack_forget()
+            self.player_bench_arr[i].name_label.pack(pady=(8, 0))
+            self.player_bench_arr[i].hp_label.pack()
+            self.player_bench_arr[i].name_label['text'] = card.name
+            self.player_bench_arr[i].hp_label['text'] = str(card.hp) + " HP"
+            self.player_bench_arr[i]['bg'] = self.colors[card.type.name]
 
         # Update p2
         if self.second_player.active_card == None:
             self.opp_active_card.plus_label.pack(expand=True)
             self.opp_active_card.name_label.pack_forget()
             self.opp_active_card.hp_label.pack_forget()
+            self.opp_active_card['bg'] = self.colors['empty_slot_bg']
         else:
             self.opp_active_card.plus_label.pack_forget()
             self.opp_active_card.name_label.pack(pady=(8, 0))
@@ -236,14 +233,9 @@ class GUI:
             self.opp_bench_arr[i]['bg'] = self.colors['empty_slot_bg']
 
         for i, card in enumerate(self.second_player.bench):
-            if card is None:
-                self.opp_bench_arr[i].plus_label.pack(expand=True)
-                self.opp_bench_arr[i].name_label.pack_forget()
-                self.opp_bench_arr[i].hp_label.pack_forget()
-            else:
-                self.opp_bench_arr[i].plus_label.pack_forget()
-                self.opp_bench_arr[i].name_label.pack(pady=(8, 0))
-                self.opp_bench_arr[i].hp_label.pack()
-                self.opp_bench_arr[i].name_label['text'] = card.name
-                self.opp_bench_arr[i].hp_label['text'] = str(card.hp) + " HP"
-                self.opp_bench_arr[i]['bg'] = self.colors[card.type.name]
+            self.opp_bench_arr[i].plus_label.pack_forget()
+            self.opp_bench_arr[i].name_label.pack(pady=(8, 0))
+            self.opp_bench_arr[i].hp_label.pack()
+            self.opp_bench_arr[i].name_label['text'] = card.name
+            self.opp_bench_arr[i].hp_label['text'] = str(card.hp) + " HP"
+            self.opp_bench_arr[i]['bg'] = self.colors[card.type.name]
