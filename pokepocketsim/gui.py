@@ -88,7 +88,7 @@ class GUI:
         opponent_bench_slots.pack(pady=5)
 
         for i in range(3):
-            card = self.create_empty_bench_slot(opponent_bench_slots, f"Opponent Bench {i+1}")
+            card = self.create_card_placeholder(opponent_bench_slots, f"Opponent Bench {i+1}")
             card.pack(side='left', padx=3)
 
         # Opponent's active Pokémon
@@ -117,7 +117,7 @@ class GUI:
         self.player_bench_slots.pack()
 
         for i in range(3):
-            card = self.create_empty_bench_slot(self.player_bench_slots, f"Player Bench {i+1}")
+            card = self.create_card_placeholder(self.player_bench_slots, f"Player Bench {i+1}")
             card.pack(side='left', padx=3)
 
         tk.Label(
@@ -127,33 +127,6 @@ class GUI:
             fg=self.colors['text_dark'],
             bg=self.colors['bg_light']
         ).pack()
-
-    def create_empty_bench_slot(self, parent, slot_name):
-        slot = tk.Frame(
-            parent,
-            bg=self.colors['empty_slot_bg'],
-            relief='raised',
-            bd=1,
-            width=100,
-            height=125
-        )
-        slot.pack_propagate(False)
-        
-        # Plus icon for empty slot
-        plus_label = tk.Label(
-            slot,
-            text="+",
-            font=('Arial', 20, 'bold'),
-            fg=self.colors['text_dark'],
-            bg=self.colors['empty_slot_bg']
-        )
-        plus_label.pack(expand=True)
-        
-        # Bind click event for empty slot
-        # slot.bind('<Button-1>', lambda e, s=slot_name: self.empty_slot_clicked(s))
-        # plus_label.bind('<Button-1>', lambda e, s=slot_name: self.empty_slot_clicked(s))
-        
-        return slot
     
     def create_card_placeholder(self, parent, name="Placeholder", hp="100 HP"):
         card = tk.Frame(
