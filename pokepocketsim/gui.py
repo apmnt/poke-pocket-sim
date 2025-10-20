@@ -196,6 +196,12 @@ class GUI:
             self.player_active_card['bg'] = self.colors[self.starting_player.active_card.type.name]
 
         # Update p1 bench
+        for i in range(3):
+            self.player_bench_arr[i].plus_label.pack(expand=True)
+            self.player_bench_arr[i].name_label.pack_forget()
+            self.player_bench_arr[i].hp_label.pack_forget()
+            self.player_bench_arr[i]['bg'] = self.colors['empty_slot_bg']
+
         for i, card in enumerate(self.starting_player.bench):
             if card is None:
                 self.player_bench_arr[i].plus_label.pack(expand=True)
@@ -223,6 +229,12 @@ class GUI:
             self.opp_active_card['bg'] = self.colors[self.second_player.active_card.type.name]
 
         # Update p2 bench
+        for i in range(3):
+            self.opp_bench_arr[i].plus_label.pack(expand=True)
+            self.opp_bench_arr[i].name_label.pack_forget()
+            self.opp_bench_arr[i].hp_label.pack_forget()
+            self.opp_bench_arr[i]['bg'] = self.colors['empty_slot_bg']
+
         for i, card in enumerate(self.second_player.bench):
             if card is None:
                 self.opp_bench_arr[i].plus_label.pack(expand=True)
