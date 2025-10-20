@@ -130,7 +130,7 @@ class GUI:
             bg=self.colors['bg_light']
         ).pack()
     
-    def create_card_placeholder(self, parent, name="Placeholder", hp="100 HP"):
+    def create_card_placeholder(self, parent, name="Placeholder", hp="100 HP", energy=""):
         card = tk.Frame(
             parent,
             bg=self.colors['empty_slot_bg'],
@@ -159,20 +159,17 @@ class GUI:
             fg=self.colors['text_light'],
             bg = card.cget('bg'),
         )
+
+        # Energy
+        card.energy_label = tk.Label(card, text=energy, font=('Arial', 8),
+            fg=self.colors['text_light'],
+            bg = card.cget('bg'),
+        )
         
         card.plus_label.pack(expand=True)
         # card.name_label.pack(pady=(8, 0))
         # card.hp_label.pack()
-        
-        # Energy type indicator
-        # energy_indicator = tk.Frame(
-        #     card,
-        #     bg=energy_color,
-        #     width=35,
-        #     height=15
-        # )
-        # energy_indicator.pack(pady=5)
-        # energy_indicator.pack_propagate(False)
+        # card.energy_label.pack()
         
         # Bind click event
         # card.bind('<Button-1>', lambda e, c=name, t=slot_type: self.card_clicked(c, t))
@@ -187,13 +184,16 @@ class GUI:
             self.player_active_card.plus_label.pack(expand=True)
             self.player_active_card.name_label.pack_forget()
             self.player_active_card.hp_label.pack_forget()
+            self.player_active_card.energy_label.pack_forget()
             self.player_active_card['bg'] = self.colors['empty_slot_bg']
         else:
             self.player_active_card.plus_label.pack_forget()
             self.player_active_card.name_label.pack(pady=(8, 0))
             self.player_active_card.hp_label.pack()
+            self.player_active_card.energy_label.pack()
             self.player_active_card.name_label['text'] = self.starting_player.active_card.name
             self.player_active_card.hp_label['text'] = str(self.starting_player.active_card.hp) + " HP"
+            self.player_active_card.energy_label['text'] = self.starting_player.active_card.energies
             self.player_active_card['bg'] = self.colors[self.starting_player.active_card.type.name]
 
         # Update p1 bench
@@ -201,14 +201,17 @@ class GUI:
             self.player_bench_arr[i].plus_label.pack(expand=True)
             self.player_bench_arr[i].name_label.pack_forget()
             self.player_bench_arr[i].hp_label.pack_forget()
+            self.player_bench_arr[i].energy_label.pack_forget()
             self.player_bench_arr[i]['bg'] = self.colors['empty_slot_bg']
 
         for i, card in enumerate(self.starting_player.bench):
             self.player_bench_arr[i].plus_label.pack_forget()
             self.player_bench_arr[i].name_label.pack(pady=(8, 0))
             self.player_bench_arr[i].hp_label.pack()
+            self.player_bench_arr[i].energy_label.pack()
             self.player_bench_arr[i].name_label['text'] = card.name
             self.player_bench_arr[i].hp_label['text'] = str(card.hp) + " HP"
+            self.player_bench_arr[i].energy_label['text'] = card.energies
             self.player_bench_arr[i]['bg'] = self.colors[card.type.name]
 
         # Update p2
@@ -216,13 +219,16 @@ class GUI:
             self.opp_active_card.plus_label.pack(expand=True)
             self.opp_active_card.name_label.pack_forget()
             self.opp_active_card.hp_label.pack_forget()
+            self.opp_active_card.energy_label.pack_forget()
             self.opp_active_card['bg'] = self.colors['empty_slot_bg']
         else:
             self.opp_active_card.plus_label.pack_forget()
             self.opp_active_card.name_label.pack(pady=(8, 0))
             self.opp_active_card.hp_label.pack()
+            self.opp_active_card.energy_label.pack()
             self.opp_active_card.name_label['text'] = self.second_player.active_card.name
             self.opp_active_card.hp_label['text'] = str(self.second_player.active_card.hp) + " HP"
+            self.opp_active_card.energy_label['text'] = self.second_player.active_card.energies
             self.opp_active_card['bg'] = self.colors[self.second_player.active_card.type.name]
 
         # Update p2 bench
@@ -230,12 +236,15 @@ class GUI:
             self.opp_bench_arr[i].plus_label.pack(expand=True)
             self.opp_bench_arr[i].name_label.pack_forget()
             self.opp_bench_arr[i].hp_label.pack_forget()
+            self.opp_bench_arr[i].energy_label.pack_forget()
             self.opp_bench_arr[i]['bg'] = self.colors['empty_slot_bg']
 
         for i, card in enumerate(self.second_player.bench):
             self.opp_bench_arr[i].plus_label.pack_forget()
             self.opp_bench_arr[i].name_label.pack(pady=(8, 0))
             self.opp_bench_arr[i].hp_label.pack()
+            self.opp_bench_arr[i].energy_label.pack()
             self.opp_bench_arr[i].name_label['text'] = card.name
             self.opp_bench_arr[i].hp_label['text'] = str(card.hp) + " HP"
+            self.opp_bench_arr[i].energy_label['text'] = card.energies
             self.opp_bench_arr[i]['bg'] = self.colors[card.type.name]
