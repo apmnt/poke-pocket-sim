@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import ttk
-from PIL import Image, ImageTk
 from .player import Player
 
 class GUI:
@@ -179,7 +178,7 @@ class GUI:
         return card
 
     def _update_active_placeholder(self, placeholder, card) -> None:
-        
+
         if card is None:
             placeholder.plus_label.pack(expand=True)
             placeholder.name_label.pack_forget()
