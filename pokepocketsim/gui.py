@@ -19,11 +19,11 @@ class GUI:
             'empty_slot_bg': '#2a2a4a',
             'text_light': '#ffffff',
             'text_dark': '#b8b8b8',
-            'energy_fire': '#ff7f00',
-            'energy_water': '#0077be',
-            'energy_grass': '#4caf50',
-            'energy_electric': '#ffd700',
-            'energy_psychic': '#9c27b0'
+            'FIRE': '#ff7f00',
+            'WATER': '#0077be',
+            'GRASS': '#4caf50',
+            'ELECTRIC': '#ffd700',
+            'PSYCHIC': "#661970"
         }
         
         self.setup_gui()
@@ -93,8 +93,17 @@ class GUI:
         opponent_active_frame = tk.Frame(battle_frame, bg=self.colors['bg_light'])
         opponent_active_frame.pack(fill='x', padx=20, pady=5)
 
-        opponent_active_card = self.create_empty_bench_slot(opponent_active_frame, f"Opponent Active")
-        opponent_active_card.pack(padx=3)
+        self.opponent_active_card_empty = self.create_empty_bench_slot(opponent_active_frame, f"Opponent Active")
+        self.opponent_active_card_empty.pack(pady=5)
+
+        self.opponent_active_card = self.create_card_placeholder(
+            opponent_active_frame, 
+            "Blastoise", 
+            "130 HP", 
+            self.colors['energy_water'],
+            "Opponent Active"
+        )
+        self.opponent_active_card.pack(pady=5)
 
         # Battle center divider
         center_frame = tk.Frame(battle_frame, bg=self.colors['accent'], height=2)
@@ -105,8 +114,17 @@ class GUI:
         player_active_frame = tk.Frame(battle_frame, bg=self.colors['bg_light'])
         player_active_frame.pack(fill='x', padx=20, pady=5)
 
-        player_active_card = self.create_empty_bench_slot(player_active_frame, f"Player Active")
-        player_active_card.pack(padx=3)
+        self.player_active_card_empty = self.create_empty_bench_slot(player_active_frame, f"Player Active")
+        self.player_active_card_empty.pack(pady=5)
+
+        self.player_active_card = self.create_card_placeholder(
+            player_active_frame, 
+            "Blastoise", 
+            "130 HP", 
+            self.colors['energy_water'],
+            "Your Active"
+        )
+        self.player_active_card.pack(pady=5)
 
         # Player's bench
         player_bench_frame = tk.Frame(battle_frame, bg=self.colors['bg_light'])
@@ -154,3 +172,52 @@ class GUI:
         # plus_label.bind('<Button-1>', lambda e, s=slot_name: self.empty_slot_clicked(s))
         
         return slot
+    
+    def create_card_placeholder(self, parent, name, hp, energy_color, slot_type):
+        card = tk.Frame(
+            parent,
+            bg=self.colors['card_bg'],
+            relief='raised',
+            bd=2,
+            width=100,
+            height=125
+        )
+        card.pack_propagate(False)
+        
+        # Pokémon name
+        card.name_label = tk.Label(
+            card,
+            text=name,
+            font=('Arial', 9, 'bold'),
+            fg=self.colors['text_light'],
+            bg = card.cget('bg'),
+            wraplength=80
+        )
+        card.name_label.pack(pady=(8, 0))
+        
+        # HP
+        card.hp_label = tk.Label(
+            card,
+            text=hp,
+            font=('Arial', 8),
+            fg=self.colors['text_light'],
+            bg = card.cget('bg'),
+        )
+        card.hp_label.pack()
+        
+        # Energy type indicator
+        # energy_indicator = tk.Frame(
+        #     card,
+        #     bg=energy_color,
+        #     width=35,
+        #     height=15
+        # )
+        # energy_indicator.pack(pady=5)
+        # energy_indicator.pack_propagate(False)
+        
+        # Bind click event
+        # card.bind('<Button-1>', lambda e, c=name, t=slot_type: self.card_clicked(c, t))
+        # for child in card.winfo_children():
+        #     child.bind('<Button-1>', lambda e, c=name, t=slot_type: self.card_clicked(c, t))
+        
+        return card
