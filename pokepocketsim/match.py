@@ -1,9 +1,12 @@
 import os
 import random
+
 from .player import Player
 from .attack import Attack
 from .action import Action, ActionType
 from .data_collector import DataCollector
+from .gui import GUI, tk
+from .utils import config
 from typing import List, Tuple, Dict, Any, Optional
 import copy
 
@@ -50,6 +53,11 @@ class Match:
         self.turn: int = 0  # The current turn number
         self.game_over: bool = False
 
+        # GUI setup
+        if config.gui_enabled:
+            self.root = tk.Tk()
+            self.gui = GUI(self.root, self.starting_player, self.second_player)
+
     def start_turn(self) -> bool:
         """
         Starts a new turn in the match.
@@ -59,13 +67,26 @@ class Match:
         Returns:
             bool: True if the game is over, False otherwise.
         """
+        # Update GUI
+        if config.gui_enabled:
+            self.gui.update_gui(self.starting_player, self.second_player)
+
+        # Start turn
         self.turn += 1
         if self.turn % 2 == 0:
             active_player = self.second_player
             non_active_player = self.starting_player
+
+            if config.gui_enabled:
+                self.gui.turn_label['text'] = "Opponent's Turn"
+                self.gui.turn_label['bg'] = '#666666'
         else:
             active_player = self.starting_player
             non_active_player = self.second_player
+
+            if config.gui_enabled:
+                self.gui.turn_label['text'] = "Your Turn"
+                self.gui.turn_label['bg'] = self.gui.colors['accent']
         
         term_size = os.get_terminal_size()
         print("-" * term_size.columns)

@@ -181,6 +181,12 @@ class Attack:
     @staticmethod
     @apply_damage
     def psychic_sphere(player: "Player") -> None:
+        if player.active_card and player.active_card.energies.get("psychic", 0) < 2:
+            if player.print_actions:
+                print(
+                    f'Not enough energy, only {player.active_card.energies.get("psychic", 0)} psychic energy'
+                )
+            return
         pass
 
     @staticmethod
