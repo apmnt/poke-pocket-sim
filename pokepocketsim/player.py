@@ -225,6 +225,14 @@ class Player:
         if match.data_collector:
             match.data_collector.actions_taken.append(action.serialize())
 
+        # Update GUI after each action so the UI stays in sync with the game state
+        if config.gui_enabled and match is not None and hasattr(match, "gui"):
+            try:
+                match.gui.update_gui(match.starting_player, match.second_player)
+            except Exception:
+                # GUI failures should not interrupt game logic; ignore errors here
+                pass
+
         # Initialize an empty list of actions
         actions: List[Action] = []
 
