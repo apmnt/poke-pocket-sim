@@ -94,14 +94,7 @@ class GUI:
         # Opponent's active Pokémon
         opponent_active_frame = tk.Frame(battle_frame, bg=self.colors['bg_light'])
         opponent_active_frame.pack(fill='x', padx=20)
-
-        self.opponent_active_card = self.create_card_placeholder(
-            opponent_active_frame, 
-            "Blastoise", 
-            "130 HP", 
-            self.colors['empty_slot_bg'],
-            "Opponent Active"
-        )
+        self.opponent_active_card = self.create_card_placeholder(opponent_active_frame)
         self.opponent_active_card.pack()
 
         # Battle center divider
@@ -112,14 +105,7 @@ class GUI:
         # Player's active Pokémon
         player_active_frame = tk.Frame(battle_frame, bg=self.colors['bg_light'])
         player_active_frame.pack(fill='x', padx=20, pady=5)
-
-        self.player_active_card = self.create_card_placeholder(
-            player_active_frame, 
-            "Blastoise", 
-            "130 HP", 
-            self.colors['empty_slot_bg'],
-            "Your Active"
-        )
+        self.player_active_card = self.create_card_placeholder(player_active_frame)
         self.player_active_card.pack()
 
         # Player's bench
@@ -169,7 +155,7 @@ class GUI:
         
         return slot
     
-    def create_card_placeholder(self, parent, name, hp, energy_color, slot_type):
+    def create_card_placeholder(self, parent, name="Placeholder", hp="100 HP"):
         card = tk.Frame(
             parent,
             bg=self.colors['empty_slot_bg'],
