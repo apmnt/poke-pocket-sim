@@ -93,19 +93,16 @@ class GUI:
 
         # Opponent's active Pokémon
         opponent_active_frame = tk.Frame(battle_frame, bg=self.colors['bg_light'])
-        opponent_active_frame.pack(fill='x', padx=20, pady=5)
-
-        self.opponent_active_card_empty = self.create_empty_bench_slot(opponent_active_frame, f"Opponent Active")
-        self.opponent_active_card_empty.pack(pady=5)
+        opponent_active_frame.pack(fill='x', padx=20)
 
         self.opponent_active_card = self.create_card_placeholder(
             opponent_active_frame, 
             "Blastoise", 
             "130 HP", 
-            self.colors['WATER'],
+            self.colors['empty_slot_bg'],
             "Opponent Active"
         )
-        self.opponent_active_card.pack(pady=5)
+        self.opponent_active_card.pack()
 
         # Battle center divider
         center_frame = tk.Frame(battle_frame, bg=self.colors['accent'], height=2)
@@ -116,28 +113,25 @@ class GUI:
         player_active_frame = tk.Frame(battle_frame, bg=self.colors['bg_light'])
         player_active_frame.pack(fill='x', padx=20, pady=5)
 
-        self.player_active_card_empty = self.create_empty_bench_slot(player_active_frame, f"Player Active")
-        self.player_active_card_empty.pack(pady=5)
-
         self.player_active_card = self.create_card_placeholder(
             player_active_frame, 
             "Blastoise", 
             "130 HP", 
-            self.colors['WATER'],
+            self.colors['empty_slot_bg'],
             "Your Active"
         )
-        self.player_active_card.pack(pady=5)
+        self.player_active_card.pack()
 
         # Player's bench
         player_bench_frame = tk.Frame(battle_frame, bg=self.colors['bg_light'])
         player_bench_frame.pack(fill='x', padx=20, pady=5)
         
         # Player's bench slots (3 slots)
-        player_bench_slots = tk.Frame(player_bench_frame, bg=self.colors['bg_light'])
-        player_bench_slots.pack(pady=5)
+        self.player_bench_slots = tk.Frame(player_bench_frame, bg=self.colors['bg_light'])
+        self.player_bench_slots.pack()
 
         for i in range(3):
-            card = self.create_empty_bench_slot(player_bench_slots, f"Player Bench {i+1}")
+            card = self.create_empty_bench_slot(self.player_bench_slots, f"Player Bench {i+1}")
             card.pack(side='left', padx=3)
 
         tk.Label(
@@ -178,34 +172,36 @@ class GUI:
     def create_card_placeholder(self, parent, name, hp, energy_color, slot_type):
         card = tk.Frame(
             parent,
-            bg=self.colors['card_bg'],
+            bg=self.colors['empty_slot_bg'],
             relief='raised',
             bd=2,
             width=100,
             height=125
         )
         card.pack_propagate(False)
+
+        # Plus icon for empty slot
+        card.plus_label = tk.Label(card, text="+", font=('Arial', 20, 'bold'),
+            fg=self.colors['text_dark'],
+            bg=self.colors['empty_slot_bg']
+        )
         
         # Pokémon name
-        card.name_label = tk.Label(
-            card,
-            text=name,
-            font=('Arial', 9, 'bold'),
+        card.name_label = tk.Label(card, text=name, font=('Arial', 9, 'bold'),
             fg=self.colors['text_light'],
             bg = card.cget('bg'),
             wraplength=80
         )
-        card.name_label.pack(pady=(8, 0))
         
         # HP
-        card.hp_label = tk.Label(
-            card,
-            text=hp,
-            font=('Arial', 8),
+        card.hp_label = tk.Label(card, text=hp, font=('Arial', 8),
             fg=self.colors['text_light'],
             bg = card.cget('bg'),
         )
-        card.hp_label.pack()
+        
+        card.plus_label.pack(expand=True)
+        # card.name_label.pack(pady=(8, 0))
+        # card.hp_label.pack()
         
         # Energy type indicator
         # energy_indicator = tk.Frame(
@@ -224,24 +220,29 @@ class GUI:
         
         return card
     
-    def update_gui(self, starting_player: Player, second_player: Player) -> None:
-        # Update p1
+    def update_gui(self, starting_player: Player, second_player: Player) -> None: 
+        # Update p1 active
         if self.starting_player.active_card == None:
-            self.player_active_card_empty.pack(pady=5)
-            self.player_active_card.pack_forget()
+            self.player_active_card.plus_label.pack(expand=True)
+            self.player_active_card.name_label.pack_forget()
+            self.player_active_card.hp_label.pack_forget()
         else:
-            self.player_active_card_empty.pack_forget()
-            self.player_active_card.pack(pady=5)
+            self.player_active_card.plus_label.pack_forget()
+            self.player_active_card.name_label.pack(pady=(8, 0))
+            self.player_active_card.hp_label.pack()
             self.player_active_card.name_label['text'] = self.starting_player.active_card.name
             self.player_active_card.hp_label['text'] = str(self.starting_player.active_card.hp) + " HP"
-            # self.player_active_card['bg'] = self.colors[self.starting_player.active_card.type.name]
+            self.player_active_card['bg'] = self.colors[self.starting_player.active_card.type.name]
 
         # Update p2
         if self.second_player.active_card == None:
-            self.opponent_active_card_empty.pack(pady=5)
-            self.opponent_active_card.pack_forget()
+            self.opponent_active_card.plus_label.pack(expand=True)
+            self.opponent_active_card.name_label.pack_forget()
+            self.opponent_active_card.hp_label.pack_forget()
         else:
-            self.opponent_active_card_empty.pack_forget()
-            self.opponent_active_card.pack(pady=5)
+            self.opponent_active_card.plus_label.pack_forget()
+            self.opponent_active_card.name_label.pack(pady=(8, 0))
+            self.opponent_active_card.hp_label.pack()
             self.opponent_active_card.name_label['text'] = self.second_player.active_card.name
-            self.opponent_active_card.hp_label['text'] = str(self.second_player.active_card.hp) + " HP"   
+            self.opponent_active_card.hp_label['text'] = str(self.second_player.active_card.hp) + " HP"
+            self.opponent_active_card['bg'] = self.colors[self.second_player.active_card.type.name]
