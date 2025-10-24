@@ -20,6 +20,7 @@ class Cards(Enum):
 
 CARDS_DICT: Dict[Cards, Dict[str, Any]] = {
     Cards.MEWTWO_EX: {
+        "id": "A1 129",
         "hp": 150,
         "energy_type": EnergyType.PSYCHIC,
         "attacks": [Attack.psydrive, Attack.psychic_sphere],
@@ -31,6 +32,7 @@ CARDS_DICT: Dict[Cards, Dict[str, Any]] = {
         "evolves_from": None,
     },
     Cards.RALTS: {
+        "id": "A1 130",
         "hp": 60,
         "energy_type": EnergyType.PSYCHIC,
         "attacks": [Attack.ram],
@@ -42,6 +44,7 @@ CARDS_DICT: Dict[Cards, Dict[str, Any]] = {
         "evolves_from": None,
     },
     Cards.KIRLIA: {
+        "id": "A1 131",
         "hp": 80,
         "energy_type": EnergyType.PSYCHIC,
         "attacks": [Attack.smack],
@@ -53,6 +56,7 @@ CARDS_DICT: Dict[Cards, Dict[str, Any]] = {
         "evolves_from": Cards.RALTS,
     },
     Cards.GARDEVOIR: {
+        "id": "A1 132",
         "hp": 110,
         "energy_type": EnergyType.PSYCHIC,
         "attacks": [Attack.psyshot],
@@ -69,6 +73,7 @@ CARDS_DICT: Dict[Cards, Dict[str, Any]] = {
 class Card:
     def __init__(
         self,
+        id: str,
         name: str,
         hp: int,
         energy_type: EnergyType,
@@ -80,6 +85,7 @@ class Card:
         stage: int = 0,
         evolves_from: Optional[Union[Cards, "Card"]] = None,
     ) -> None:
+        self.id: str = id
         self.uuid: uuid.UUID = uuid.uuid4()
         self.name: str = name
         self.max_hp: int = hp
@@ -211,6 +217,8 @@ class Card:
                 evolves_from_name = other_card.name
 
         return {
+            "id": self.id,  # Card's printed ID (e.g. set number)
+            "uuid": str(self.uuid),  # Instance-unique identifier
             "name": self.name,
             "hp": self.hp,
             "max_hp": self.max_hp,
