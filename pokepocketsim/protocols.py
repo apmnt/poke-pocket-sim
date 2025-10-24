@@ -1,12 +1,13 @@
-from typing import Protocol, List, Union, TYPE_CHECKING
-from .condition import ConditionBase
+from typing import TYPE_CHECKING, List, Protocol
+
+from .mechanics.condition import ConditionBase
 
 if TYPE_CHECKING:
-    from .attack import EnergyType
+    from .mechanics.attack_common import EnergyType
 
 
 class ICard(Protocol):
-    type: Union[str, "EnergyType"]
+    energy_type: "EnergyType"
     hp: int
     max_hp: int
     name: str

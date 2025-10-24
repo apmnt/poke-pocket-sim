@@ -10,7 +10,6 @@ class ConditionBase:
 
 
 class Condition:
-
     class Minus20DamageReceived(ConditionBase):
         def rid(self) -> bool:
             return True

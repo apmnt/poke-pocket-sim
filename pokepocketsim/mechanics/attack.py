@@ -1,24 +1,19 @@
 # Dynamically created attack methods and their source code:
-from enum import Enum
 from functools import wraps
-from .condition import Condition
-from .attack_common import EnergyType, ATTACKS
-
 from typing import (
     TYPE_CHECKING,
-    Dict,
     Any,
     Callable,
+    Dict,
     TypeVar,
     cast,
-    Optional,
-    List,
-    Union,
 )
 
+from .attack_common import ATTACKS, EnergyType
+
 if TYPE_CHECKING:
-    from .player import Player
     from .card import Card
+    from .player import Player
 
 
 # Type for attack functions
@@ -61,20 +56,12 @@ def apply_damage(func: F) -> F:
                 opponent_card_type = str(player.opponent.active_card.energy_type)
 
                 # Apply weakness and resistance adjustments
-                damage = apply_type_effects(
-                    damage, player_card_type, opponent_card_type
-                )
+                damage = apply_type_effects(damage, player_card_type, opponent_card_type)
 
             # Apply conditions
-            if (
-                player.active_card
-                and "Plus10DamageDealed" in player.active_card.conditions
-            ):
+            if player.active_card and "Plus10DamageDealed" in player.active_card.conditions:
                 damage += 10
-            if (
-                player.active_card
-                and "Plus30DamageDealed" in player.active_card.conditions
-            ):
+            if player.active_card and "Plus30DamageDealed" in player.active_card.conditions:
                 damage += 30
             if (
                 player.opponent.active_card
@@ -184,7 +171,7 @@ class Attack:
         if player.active_card and player.active_card.energies.get("psychic", 0) < 2:
             if player.print_actions:
                 print(
-                    f'Not enough energy, only {player.active_card.energies.get("psychic", 0)} psychic energy'
+                    f"Not enough energy, only {player.active_card.energies.get('psychic', 0)} psychic energy"
                 )
             return
         pass
@@ -195,7 +182,7 @@ class Attack:
         if player.active_card and player.active_card.energies.get("psychic", 0) < 2:
             if player.print_actions:
                 print(
-                    f'Not enough energy, only {player.active_card.energies.get("psychic", 0)} psychic energy'
+                    f"Not enough energy, only {player.active_card.energies.get('psychic', 0)} psychic energy"
                 )
             return
 

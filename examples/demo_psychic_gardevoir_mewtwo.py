@@ -1,5 +1,6 @@
 import builtins
-from pokepocketsim import Player, Deck, Card, Item, Match
+
+from pokepocketsim import Card, Deck, Item, Match, Player
 
 # Global list to record inputs
 recorded_inputs = []

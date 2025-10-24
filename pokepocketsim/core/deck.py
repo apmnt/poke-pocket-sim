@@ -1,13 +1,12 @@
 import random
 import uuid
-from typing import List, Optional, Any, Union, Type
+from typing import Any, List, Optional, Type
+
 from .card import Card
 
 
 class Deck:
-    def __init__(
-        self, energy_types: List[str], cards: Optional[List[Any]] = None
-    ) -> None:
+    def __init__(self, energy_types: List[str], cards: Optional[List[Any]] = None) -> None:
         self.uid: uuid.UUID = uuid.uuid4()
         self.energy_types: List[str] = energy_types
         self.cards: List[Any] = cards if cards is not None else []

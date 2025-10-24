@@ -1,12 +1,11 @@
+import json
 import random
 import uuid
-import json
 from pathlib import Path
-from .action import Action, ActionType
-from .attack import Attack, EnergyType
-from .ability import Ability
-from typing import TYPE_CHECKING, Dict, Any, List, Optional, Union, Callable, Type, cast
-from .item import Item
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
+
+from ..mechanics.ability import Ability
+from ..mechanics.attack import Attack, EnergyType
 
 if TYPE_CHECKING:
     from .player import Player
@@ -49,15 +48,15 @@ def _parse_card_data(card_data: List[Dict[str, Dict[str, Any]]]) -> List[Dict[st
 
 def _load_cards() -> List[Dict[str, Dict[str, Any]]]:
     """Load and parse the card database from JSON file."""
-    pkg_dir = Path(__file__).parent
-    json_path = pkg_dir / "database.json"
-    
+    pkg_dir = Path(__file__).parent.parent  # Go up to pokepocketsim/
+    json_path = pkg_dir / "data" / "database.json"
+
     try:
-        with open(json_path, 'r', encoding='utf-8') as f:
+        with open(json_path, encoding="utf-8") as f:
             raw_data = json.load(f)
         return _parse_card_data(raw_data)
-    except (IOError, json.JSONDecodeError) as e:
-        raise RuntimeError(f"Failed to load card database from {json_path}: {e}")
+    except (OSError, json.JSONDecodeError) as e:
+        raise RuntimeError(f"Failed to load card database from {json_path}: {e}") from e
 
 
 # Load card data when module is imported
@@ -112,7 +111,7 @@ class Card:
         self.is_ex: bool = is_ex
         self.stage: int = stage
         self.has_used_ability: bool = False
-        self.evolves_from: Optional[Union[str, "Card"]] = evolves_from
+        self.evolves_from: Optional[Union[str, Card]] = evolves_from
         self.can_evolve: bool = False
 
     @property
@@ -132,9 +131,7 @@ class Card:
         ]
 
     def update_conditions(self) -> None:
-        self.conditions = [
-            condition for condition in self.conditions if not condition.rid()
-        ]
+        self.conditions = [condition for condition in self.conditions if not condition.rid()]
 
     @staticmethod
     def add_energy(player: "Player", card: "Card", energy: str) -> None:
@@ -150,17 +147,13 @@ class Card:
         if energy not in self.energies:
             raise ValueError(f"Energy type {energy_enum.value} not found in energies.")
         if self.energies[energy_enum.value] <= 0:
-            raise ValueError(
-                f"Energy count for {energy_enum.value} is already 0 or less."
-            )
+            raise ValueError(f"Energy count for {energy_enum.value} is already 0 or less.")
         self.energies[energy_enum.value] -= 1
 
     def remove_retreat_cost_energy(self) -> None:
         total_energy_needed = self.retreat_cost
         while total_energy_needed > 0:
-            available_energies = [
-                energy for energy, count in self.energies.items() if count > 0
-            ]
+            available_energies = [energy for energy, count in self.energies.items() if count > 0]
             if not available_energies:
                 raise ValueError("Not enough energy to cover the retreat cost.")
             selected_energy = random.choice(available_energies)
@@ -178,10 +171,8 @@ class Card:
         """
         try:
             evolved_card_info = find_card_by_name(evolved_card_name)
-        except ValueError:
-            raise ValueError(
-                f"Card {evolved_card_name} does not exist in CARDS_DATA."
-            )
+        except ValueError as e:
+            raise ValueError(f"Card {evolved_card_name} does not exist in CARDS_DATA.") from e
 
         # evolved_card_info['evolves_from'] is expected to be the name (str)
         evolves_from_value = evolved_card_info.get("evolves_from")
@@ -203,9 +194,7 @@ class Card:
         self.can_evolve = False
 
     def __repr__(self) -> str:
-        energies_str = ", ".join(
-            f"{energy}: {amount}" for energy, amount in self.energies.items()
-        )
+        energies_str = ", ".join(f"{energy}: {amount}" for energy, amount in self.energies.items())
         return f"Card({self.name} with {self.hp} hp, Energies: {energies_str})"
 
     def serialize(self) -> Dict[str, Any]:
@@ -259,7 +248,7 @@ class Card:
         """
         try:
             card_info = find_card_by_name(card_name)
-        except ValueError:
-            raise ValueError(f"Card {card_name} not found in CARDS_DATA.")
+        except ValueError as e:
+            raise ValueError(f"Card {card_name} not found in CARDS_DATA.") from e
 
         return Card(**card_info)

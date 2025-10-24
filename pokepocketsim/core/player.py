@@ -1,28 +1,22 @@
-import random, copy
+import random
+import uuid
 from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
     List,
     Optional,
-    TYPE_CHECKING,
-    Dict,
-    Any,
-    Union,
     Type,
-    Callable,
     cast,
-    Protocol,
 )
-import uuid
-from .action import Action, ActionType
+
+from ..mechanics.action import Action, ActionType
+from ..utils import color_print as cprint
+from ..utils import config
 from .card import Card
-from .item import Item
-from .supporter import Supporter
-from .attack import Attack
-from .attack_common import EnergyType
-from .protocols import ICard, IPlayer
-from .utils import color_print as cprint
-from .utils import config
 
 if TYPE_CHECKING:
+    from ..state.player_state import PlayerState
     from .deck import Deck
     from .match import Match
 
@@ -56,7 +50,7 @@ class Player:
 
     def __init__(self, name: str, deck: "Deck", is_bot: bool = True) -> None:
         self.name: str = name
-        self.deck: "Deck" = deck
+        self.deck: Deck = deck
         self.is_bot: bool = is_bot
         self.discard_pile: List[Card] = []
         self.hand: List[Any] = [
@@ -67,7 +61,7 @@ class Player:
         self.bench: List[Card] = []
         self.active_card: Optional[Card] = None
         self.points: int = 0
-        self.opponent: Optional["Player"] = None
+        self.opponent: Optional[Player] = None
         self.current_energy: Optional[str] = None
         self.has_used_trainer: bool = False
         self.has_added_energy: bool = False
@@ -76,7 +70,11 @@ class Player:
         self.evaluate_actions: bool = False
         self.print_actions: bool = True
 
-        self.cname = (cprint.get(self.name, cprint.RED) if self.name == "p1" else cprint.get(self.name, cprint.CYAN))
+        self.cname = (
+            cprint.get(self.name, cprint.RED)
+            if self.name == "p1"
+            else cprint.get(self.name, cprint.CYAN)
+        )
 
     @property
     def active_card_and_bench(self) -> List[Card]:
@@ -130,9 +128,7 @@ class Player:
             and self.opponent.active_card.hp <= 0
         ):
             if self.print_actions:
-                print(
-                    f"{self.opponent.name}'s {self.opponent.active_card.name} knocked out!"
-                )
+                print(f"{self.opponent.name}'s {self.opponent.active_card.name} knocked out!")
 
             if self.opponent.active_card.is_ex:
                 self.points += 2
@@ -151,13 +147,13 @@ class Player:
         if self.print_actions:
             print(cprint.get("Possible actions:", cprint.YELLOW))
             for i, action in enumerate(actions):
-                if config.debug == False:
-                    action = action.name
-                print(f"\t{i}: {action}")
+                if not config.debug:
+                    action_str = action.name
+                else:
+                    action_str = str(action)
+                print(f"\t{i}: {action_str}")
 
-    def process_best_actions(
-        self, match: "Match", best_actions: List[Action]
-    ) -> List[Action]:
+    def process_best_actions(self, match: "Match", best_actions: List[Action]) -> List[Action]:
         if best_actions:
             actions = self.gather_actions()
             best_action = Action.find_action(actions, best_actions[0])
@@ -168,9 +164,7 @@ class Player:
             self.can_continue = False
             return []
 
-    def process_user_actions(
-        self, match: "Match", actions: List[Action]
-    ) -> List[Action]:
+    def process_user_actions(self, match: "Match", actions: List[Action]) -> List[Action]:
         if actions:
             selected_index = self.choose_action(actions, print_actions=True)
             actions = self.act_and_regather_actions(match, actions[selected_index])
@@ -179,9 +173,7 @@ class Player:
             self.can_continue = False
             return []
 
-    def process_bot_actions(
-        self, match: "Match", actions: List[Action]
-    ) -> List[Action]:
+    def process_bot_actions(self, match: "Match", actions: List[Action]) -> List[Action]:
         if actions:
             action_index = random.randint(0, len(actions) - 1)
             selected_action = actions.pop(action_index)
@@ -217,21 +209,10 @@ class Player:
         Returns:
             A list of new actions
         """
+        from ..engine import execute_action, get_available_actions
 
-        # Execute the action and update can_continue status
-        self.can_continue = action.act(self)
-
-        # DATA COLLECTION: Collect actions
-        if match.data_collector:
-            match.data_collector.actions_taken.append(action.serialize())
-
-        # Update GUI after each action so the UI stays in sync with the game state
-        if config.gui_enabled and match is not None and hasattr(match, "gui"):
-            try:
-                match.gui.update_gui(match.starting_player, match.second_player)
-            except Exception:
-                # GUI failures should not interrupt game logic; ignore errors here
-                pass
+        # Execute the action using the engine and update can_continue status
+        self.can_continue = execute_action(self, action, match)
 
         # Initialize an empty list of actions
         actions: List[Action] = []
@@ -243,26 +224,11 @@ class Player:
 
             # If past the first two turns, gather new actions
             if match.turn > 2:
-                actions = self.gather_actions()
+                actions = get_available_actions(self)
         # Handle other action types
         else:
-            # Update energy status if energy was added
-            if action.action_type == ActionType.ADD_ENERGY:
-                self.has_added_energy = True
-
-            # Update trainer status if a supporter was used
-            if action.action_type == ActionType.SUPPORTER:
-                self.has_used_trainer = True
-                if action.item_class:
-                    self.remove_item_from_hand(action.item_class)
-
-            # Remove used items from hand
-            if action.action_type == ActionType.ITEM:
-                if action.item_class:
-                    self.remove_item_from_hand(action.item_class)
-
             # Gather new actions after processing
-            actions = self.gather_actions()
+            actions = get_available_actions(self)
 
         return actions
 
@@ -271,9 +237,7 @@ class Player:
             return
 
         try:
-            card_to_remove = next(
-                card for card in self.hand if isinstance(card, item_class)
-            )
+            card_to_remove = next(card for card in self.hand if isinstance(card, item_class))
             self.hand.remove(card_to_remove)
         except StopIteration:
             # Handle the case where no matching card is found
@@ -284,198 +248,19 @@ class Player:
     def remove_card_from_hand(player: "Player", card_id: uuid.UUID) -> None:
         card = Player.find_by_id(player.hand, card_id)
         if not card:
-            raise ValueError(f"Card not found in hand.")
+            raise ValueError("Card not found in hand.")
         player.hand.remove(card)
 
     def gather_actions(self) -> List[Action]:
-        """Gather all possible actions for the player."""
-        actions: List[Action] = []
-        if self.active_card is not None:
-            # Get all potion cards
-            potion_cards = [
-                card
-                for card in self.hand
-                if hasattr(card, "card_able_to_use")
-                and card.__class__.__name__ == "Potion"
-            ]
+        """
+        Gather all possible actions for the player.
 
-            # Process potion cards
-            for potion_card in potion_cards:
-                for pokemon in self.active_card_and_bench:
-                    potion = Item.Potion()
-                    if potion.card_able_to_use(cast(ICard, pokemon)):
-                        actions.append(
-                            Action(
-                                f"Use potion on ({pokemon})",
-                                lambda pokemon=pokemon: potion.use(
-                                    cast(ICard, pokemon)
-                                ),
-                                ActionType.ITEM,
-                                item_class=Item.Potion,
-                            )
-                        )
+        This method now delegates to the engine module for action discovery.
+        Maintained for backwards compatibility.
+        """
+        from ..engine import get_available_actions
 
-            # Process supporter cards if trainers haven't been used
-            if not self.has_used_trainer:
-                # Get all Erika cards
-                erika_cards = [
-                    card
-                    for card in self.hand
-                    if hasattr(card, "card_able_to_use")
-                    and card.__class__.__name__ == "Erika"
-                ]
-
-                # Process Erika cards
-                for _ in erika_cards:
-                    for pokemon in self.active_card_and_bench:
-                        erika = Supporter.Erika()
-                        # Using structural typing without needing cast
-                        # TODO: Refactor the trainer classes to use the same interface
-                        if hasattr(pokemon, "type") and erika.card_able_to_use(pokemon):  # type: ignore
-                            actions.append(
-                                Action(
-                                    f"Use Erika on ({pokemon})",
-                                    lambda card=pokemon: erika.use(
-                                        card
-                                    ),  # Renamed parameter to avoid variable capture issues
-                                    ActionType.SUPPORTER,
-                                    item_class=Supporter.Erika,
-                                )
-                            )
-
-                # Get all Giovanni cards
-                giovanni_cards = [
-                    card
-                    for card in self.hand
-                    if hasattr(card, "name") and card.__class__.__name__ == "Giovanni"
-                ]
-
-                # Process Giovanni cards
-                if giovanni_cards:
-                    giovanni = Supporter.Giovanni()
-                    actions.append(
-                        Action(
-                            f"Use Giovanni",
-                            lambda player=self: giovanni.use(player),
-                            ActionType.SUPPORTER,
-                            item_class=Supporter.Giovanni,
-                        )
-                    )
-
-            # EVOLUTIONS
-            for card in self.hand:
-                if isinstance(card, Card) and card.evolves_from is not None:
-                    for card_to_evolve in self.active_card_and_bench:
-                        # determines evolves_from name (we use string names only)
-                        evolves_from_name = card.evolves_from if isinstance(card.evolves_from, str) else None
-
-                        if (
-                            card_to_evolve
-                            and evolves_from_name
-                            and evolves_from_name == card_to_evolve.name
-                            and card_to_evolve.can_evolve
-                        ):
-                            actions.append(
-                                Action(
-                                    f"Evolve {card_to_evolve.name} to {card.name}",
-                                    lambda player=self, card_to_evolve_id=card_to_evolve.uuid, evolution_card_id=card.uuid: Player.evolve_and_remove_from_hand(
-                                        player,
-                                        card_to_evolve_id,
-                                        evolution_card_id,
-                                    ),
-                                    ActionType.EVOLVE,
-                                )
-                            )
-
-            # ABILITY
-            for card in self.active_card_and_bench:
-                if (
-                    card.ability
-                    and not card.has_used_ability
-                    and hasattr(card.ability, "able_to_use")
-                    and card.ability.able_to_use(self)
-                ):
-                    ability_actions = card.ability.gather_actions(self, card)
-                    for ability_action in ability_actions:
-                        actions.append(ability_action)
-
-            # ATTACKS
-            for attack in self.active_card.attacks:
-                if Attack.can_use_attack(self.active_card, attack):
-                    actions.append(
-                        Action(
-                            f"{self.active_card.name} use {getattr(attack, '__name__', str(attack))}",
-                            attack,
-                            ActionType.ATTACK,
-                            can_continue_turn=False,
-                        )
-                    )
-
-            # RETREAT
-            if (
-                self.active_card.get_total_energy() >= self.active_card.retreat_cost
-                and len(self.bench) > 0
-            ):
-                actions.append(
-                    Action(
-                        f"Retreat active card ({self.active_card})",
-                        lambda player=self: Player.retreat(player),
-                        ActionType.FUNCTION,
-                    )
-                )
-
-            # ADD CARD TO BENCH
-            for card in self.hand:
-                if isinstance(card, Card) and card.is_basic:
-                    actions.append(
-                        Action(
-                            f"Add {card.name} to bench",
-                            lambda player=self, card_id=card.uuid: Player.add_card_to_bench(
-                                player, card_id
-                            ),
-                            ActionType.ADD_CARD_TO_BENCH,
-                        )
-                    )
-
-            # ADD ENERGY
-            if self.has_added_energy is False and self.current_energy is not None:
-                for card in self.active_card_and_bench:
-                    actions.append(
-                        Action(
-                            f"Add {self.current_energy} energy to {card.name}",
-                            lambda player=self, card_id=card.uuid, energy=self.current_energy: self._add_energy_action(
-                                card_id, energy
-                            ),
-                            ActionType.ADD_ENERGY,
-                        )
-                    )
-        # SET AN ACTIVE CARD
-        else:
-            if not self.active_card:
-                for card in self.hand:
-                    if isinstance(card, Card) and card.is_basic:
-                        actions.append(
-                            Action(
-                                f"Set {card.name} as active card",
-                                lambda player=self, card_id=card.uuid: Player.set_active_card_from_hand(
-                                    player, card_id
-                                ),
-                                ActionType.SET_ACTIVE_CARD,
-                            )
-                        )
-
-        # END TURN
-        if self.active_card is not None and len(actions) > 0:
-            actions.append(
-                Action(
-                    "End turn",
-                    lambda player: setattr(player, "can_continue", False),
-                    ActionType.END_TURN,
-                    can_continue_turn=False,
-                )
-            )
-
-        return actions
+        return get_available_actions(self)
 
     def _add_energy_action(self, card_id: uuid.UUID, energy: str) -> None:
         """Helper method to handle adding energy to a card"""
@@ -489,9 +274,7 @@ class Player:
     def evolve_and_remove_from_hand(
         player: "Player", card_to_evolve_id: uuid.UUID, evolution_card_id: uuid.UUID
     ) -> None:
-        card_to_evolve = Player.find_by_id(
-            player.active_card_and_bench, card_to_evolve_id
-        )
+        card_to_evolve = Player.find_by_id(player.active_card_and_bench, card_to_evolve_id)
         evolution_card = Player.find_by_id(player.hand, evolution_card_id)
 
         if card_to_evolve and evolution_card:
@@ -500,7 +283,9 @@ class Player:
                 card_to_evolve.evolve(evolution_card.name)
                 Player.remove_card_from_hand(player, evolution_card.uuid)
             except Exception as e:
-                raise ValueError(f"Failed to evolve {card_to_evolve.name} to {evolution_card.name}: {e}")
+                raise ValueError(
+                    f"Failed to evolve {card_to_evolve.name} to {evolution_card.name}: {e}"
+                ) from e
         else:
             raise ValueError("Card to evolve or evolution card not found.")
 
@@ -530,9 +315,7 @@ class Player:
             self.active_card = random.choice(eligible_cards)
             self.bench.remove(self.active_card)
             if self.print_actions:
-                print(
-                    f"{old_active_card.name} retreated, {self.active_card.name} set as active"
-                )
+                print(f"{old_active_card.name} retreated, {self.active_card.name} set as active")
         else:
             raise ValueError("No eligible cards in bench to set as active")
 
@@ -545,7 +328,7 @@ class Player:
             player.active_card = card
             player.hand.remove(card)
         else:
-            raise ValueError(f"Card not found in hand or invalid")
+            raise ValueError("Card not found in hand or invalid")
 
     def set_active_card_from_bench(self, card: Card) -> None:
         if card not in self.bench:
@@ -560,7 +343,7 @@ class Player:
     def add_card_to_bench(player: "Player", card_id: uuid.UUID) -> None:
         card = Player.find_by_id(player.hand, card_id)
         if not card:
-            raise ValueError(f"Card not found in hand")
+            raise ValueError("Card not found in hand")
         if len(player.bench) < 3:
             player.bench.append(card)
             player.hand.remove(card)
@@ -609,7 +392,8 @@ class Player:
 
         # Prints
         if self.print_actions:
-            print(f"{self.cname} active card: " + cprint.get(self.active_card, cprint.GREEN))
+            active_card_str = str(self.active_card) if self.active_card else "None"
+            print(f"{self.cname} active card: " + cprint.get(active_card_str, cprint.GREEN))
             print(f"{self.cname} hand: ")
             for c in self.hand:
                 print("\t", c)
@@ -655,9 +439,21 @@ class Player:
         return evolved_cards
 
     def serialize(self) -> Dict[str, Any]:
+        """Serialize player state to dictionary."""
+
+        # Helper to serialize items in hand that may be Card instances or Item classes
+        def serialize_hand_item(item: Any) -> Dict[str, Any]:
+            if hasattr(item, "serialize") and callable(item.serialize):
+                return cast(Dict[str, Any], item.serialize())
+            elif hasattr(item, "__name__"):
+                # It's a class (like Item.Potion), not an instance
+                return {"type": "item_class", "name": item.__name__}
+            else:
+                return {"type": "unknown", "name": str(item)}
+
         return {
             "name": self.name,
-            "hand": [card.serialize() for card in self.hand],
+            "hand": [serialize_hand_item(card) for card in self.hand],
             "bench": [card.serialize() for card in self.bench],
             "active_card": self.active_card.serialize() if self.active_card else None,
             "deck": [card.serialize() for card in self.deck.cards],
@@ -665,6 +461,17 @@ class Player:
             "points": self.points,
             "has_used_trainer": self.has_used_trainer,
         }
+
+    def to_state(self) -> "PlayerState":
+        """
+        Convert Player to PlayerState for serialization.
+
+        Returns:
+            PlayerState object representing current player state
+        """
+        from ..state import PlayerState
+
+        return PlayerState.from_player(self)
 
     def __repr__(self) -> str:
         return f"Player({self.name}, Hand: {len(self.hand)} cards, Active Card: {self.active_card}, Bench: {len(self.bench)} cards, Points: {self.points})"

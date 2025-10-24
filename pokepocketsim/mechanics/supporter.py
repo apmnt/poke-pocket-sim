@@ -1,15 +1,13 @@
-from enum import Enum
-import random
-from typing import Any, Union, TYPE_CHECKING
-from .condition import Condition, ConditionBase
-from .protocols import ICard, IPlayer, ISupporter
+from typing import TYPE_CHECKING
+
+from ..protocols import ICard, IPlayer, ISupporter
+from .condition import Condition
 
 if TYPE_CHECKING:
-    from .attack import EnergyType
+    pass
 
 
 class Supporter:
-
     class Erika(ISupporter):
         def __init__(self) -> None:
             self.name: str = "Erika"
