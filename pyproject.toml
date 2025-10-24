@@ -1,0 +1,152 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "poke-pocket-sim"
+version = "0.2.0"
+description = "A Pokemon TCG Pocket Simulator"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+keywords = [
+    "pokemon",
+    "tcg",
+    "tcgp",
+    "simulator",
+    "game",
+    "card-game",
+    "ptcgp",
+    "pokemon-tcg-pocket"
+]
+
+dependencies = []
+
+[project.optional-dependencies]
+
+# Development dependencies
+dev = [
+    "ruff>=0.1.0",      # Fast linter & formatter (replaces black, isort, flake8)
+    "mypy>=1.9.0",      # Type checker
+    "pytest>=7.0.0",    # Test runner
+    "pytest-cov>=4.0.0" # Coverage reporting
+]
+
+# All optional dependencies combined
+all = [
+    "ruff>=0.1.0",
+    "mypy>=1.9.0",
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/apmnt/poke-pocket-sim"
+Repository = "https://github.com/apmnt/poke-pocket-sim"
+
+[project.scripts]
+poke-sim = "pokepocketsim.cli:main"
+
+[tool.setuptools]
+packages = ["pokepocketsim"]
+
+[tool.setuptools.package-data]
+pokepocketsim = ["database.json", "py.typed"]
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "pokepocketsim.gui"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "pytest.*"
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers"
+testpaths = ["tests"]
+pythonpath = ["."]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+[tool.coverage.run]
+source = ["pokepocketsim"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+    "*/gui.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "if typing.TYPE_CHECKING:",
+    "@abstractmethod",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+extend-exclude = [
+    ".eggs",
+    ".git",
+    ".mypy_cache",
+    ".tox",
+    ".venv",
+    "build",
+    "dist",
+    "__pycache__",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort (import sorting)
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # unused imports
+
+[tool.ruff.lint.isort]
+known-first-party = ["pokepocketsim"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
