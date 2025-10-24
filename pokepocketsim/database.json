@@ -1,0 +1,62 @@
+[
+    {
+        "Pokemon": {
+            "id": "A1 129",
+            "name": "Mewtwo EX",
+            "stage": 0,
+            "evolves_from": null,
+            "hp": 150,
+            "energy_type": "Psychic",
+            "ability": null,
+            "attacks": ["psydrive", "psychic_sphere"],
+            "weakness": "Fighting",
+            "retreat_cost": ["Colorless", "Colorless"],
+            "is_ex": true
+        }
+    },
+    {
+        "Pokemon": {
+            "id": "A1 130",
+            "name": "Ralts",
+            "stage": 0,
+            "evolves_from": null,
+            "hp": 60,
+            "energy_type": "Psychic",
+            "ability": null,
+            "attacks": ["ram"],
+            "weakness": "Darkness",
+            "retreat_cost": ["Colorless"],
+            "is_ex": false
+        }
+    },
+    {
+        "Pokemon": {
+            "id": "A1 131",
+            "name": "Kirlia",
+            "stage": 1,
+            "evolves_from": "Ralts",
+            "hp": 80,
+            "energy_type": "Psychic",
+            "ability": null,
+            "attacks": ["smack"],
+            "weakness": "Darkness",
+            "retreat_cost": ["Colorless"],
+            "is_ex": false
+        }
+    },
+    {
+        "Pokemon": {
+            "id": "A1 132",
+            "name": "Gardevoir",
+            "stage": 2,
+            "evolves_from": "Kirlia",
+            "hp": 110,
+            "energy_type": "Psychic",
+            "ability": "PsyShadow",
+            "attacks": ["psyshot"],
+            "weakness": "Darkness",
+            "retreat_cost": ["Colorless", "Colorless"],
+            "is_ex": false
+        }
+    }
+]

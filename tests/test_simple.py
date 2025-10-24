@@ -1,5 +1,5 @@
 import pytest
-from pokepocketsim import Player, Deck, Card, Item, Match, Cards
+from pokepocketsim import Player, Deck, Card, Item, Match
 
 
 class TestMatch:
@@ -28,18 +28,18 @@ class TestMatch:
     @pytest.fixture(autouse=True)
     def setup(self):
         self.test_deck1 = Deck(energy_types=["psychic"])
-        self.test_deck1.add(Card.create_card(Cards.RALTS))
-        self.test_deck1.add(Card.create_card(Cards.KIRLIA))
-        self.test_deck1.add(Card.create_card(Cards.GARDEVOIR))
-        self.test_deck1.add(Card.create_card(Cards.MEWTWO_EX))
+        self.test_deck1.add(Card.create_card("Ralts"))
+        self.test_deck1.add(Card.create_card("Kirlia"))
+        self.test_deck1.add(Card.create_card("Gardevoir"))
+        self.test_deck1.add(Card.create_card("Mewtwo EX"))
         self.test_deck1.add(Item.Potion)
         self.test_deck1.add(Item.Potion)
 
         self.test_deck2 = Deck(energy_types=["psychic"])
-        self.test_deck2.add(Card.create_card(Cards.RALTS))
-        self.test_deck2.add(Card.create_card(Cards.RALTS))
-        self.test_deck2.add(Card.create_card(Cards.RALTS))
-        self.test_deck2.add(Card.create_card(Cards.RALTS))
+        self.test_deck2.add(Card.create_card("Ralts"))
+        self.test_deck2.add(Card.create_card("Ralts"))
+        self.test_deck2.add(Card.create_card("Ralts"))
+        self.test_deck2.add(Card.create_card("Ralts"))
 
         self.test_player1 = Player("p1", self.test_deck1, is_bot=False)
         self.test_player2 = Player("p2", self.test_deck2, is_bot=False)

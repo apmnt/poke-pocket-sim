@@ -6,15 +6,15 @@ from typing import Dict, Any, Callable, List, Optional, cast, Union
 
 
 class EnergyType(Enum):
-    WATER = "water"
-    FIRE = "fire"
-    GRASS = "grass"
-    ELECTRIC = "electric"
-    PSYCHIC = "psychic"
-    FIGHTING = "fighting"
-    DARKNESS = "darkness"
-    METAL = "metal"
-    ANY = "any"
+    Water = "water"
+    Fire = "fire"
+    Grass = "grass"
+    Electric = "electric"
+    Psychic = "psychic"
+    Fighting = "fighting"
+    Darkness = "darkness"
+    Metal = "metal"
+    Any = "any"
 
 
 class AttackName(Enum):
@@ -1438,7 +1438,7 @@ def apply_damage(func: Callable) -> Callable:
                 and player.opponent.active_card
                 and player.active_card
                 and hasattr(player.opponent.active_card, "weakness")
-                and player.opponent.active_card.weakness == player.active_card.type
+                and player.opponent.active_card.weakness == player.active_card.energy_type
             ):
                 damage += 20
 
@@ -1524,8 +1524,8 @@ def psydrive(player: Any) -> None:
     Requires removing 2 psychic energy from the active card.
     """
     if hasattr(player, "active_card") and player.active_card:
-        player.active_card.remove_energy(EnergyType.PSYCHIC)
-        player.active_card.remove_energy(EnergyType.PSYCHIC)
+        player.active_card.remove_energy(EnergyType.Psychic)
+        player.active_card.remove_energy(EnergyType.Psychic)
 
 
 # ------------------- GENERATOR FUNCTIONS ---------------------------------

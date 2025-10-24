@@ -5,16 +5,16 @@ from typing import Dict, Any
 class EnergyType(Enum):
     """Energy types in the game."""
 
-    WATER = "water"
-    FIRE = "fire"
-    GRASS = "grass"
-    ELECTRIC = "electric"
-    PSYCHIC = "psychic"
-    FIGHTING = "fighting"
-    DARKNESS = "darkness"
-    METAL = "metal"
-    COLORLESS = "colorless"
-    ANY = "any"
+    Water = "water"
+    Fire = "fire"
+    Grass = "grass"
+    Electric = "electric"
+    Psychic = "psychic"
+    Fighting = "fighting"
+    Darkness = "darkness"
+    Metal = "metal"
+    Colorless = "colorless"
+    Any = "any"
 
 
 # Attack data dictionary with damage values and energy costs

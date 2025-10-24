@@ -57,8 +57,8 @@ def apply_damage(func: F) -> F:
 
             # Type effectiveness
             if player.active_card and player.opponent.active_card:
-                player_card_type = str(player.active_card.type)
-                opponent_card_type = str(player.opponent.active_card.type)
+                player_card_type = str(player.active_card.energy_type)
+                opponent_card_type = str(player.opponent.active_card.energy_type)
 
                 # Apply weakness and resistance adjustments
                 damage = apply_type_effects(
@@ -200,8 +200,8 @@ class Attack:
             return
 
         if player.active_card:
-            player.active_card.remove_energy(EnergyType.PSYCHIC)
-            player.active_card.remove_energy(EnergyType.PSYCHIC)
+            player.active_card.remove_energy(EnergyType.Psychic)
+            player.active_card.remove_energy(EnergyType.Psychic)
 
     @staticmethod
     @apply_damage
