@@ -200,8 +200,8 @@ class Attack:
             return
 
         if player.active_card:
-            player.active_card.remove_energy(EnergyType.PSYCHIC)
-            player.active_card.remove_energy(EnergyType.PSYCHIC)
+            player.active_card.remove_energy(EnergyType.Psychic)
+            player.active_card.remove_energy(EnergyType.Psychic)
 
     @staticmethod
     @apply_damage

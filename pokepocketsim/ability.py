@@ -65,5 +65,5 @@ class Ability:
                 )
 
             # Now we know both cards are not None
-            Card.add_energy(player, target_card, EnergyType.PSYCHIC.value)
+            Card.add_energy(player, target_card, EnergyType.Psychic.value)
             using_card.has_used_ability = True

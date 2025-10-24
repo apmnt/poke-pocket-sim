@@ -20,11 +20,11 @@ class GUI:
             'empty_slot_bg': '#2a2a4a',
             'text_light': '#ffffff',
             'text_dark': '#b8b8b8',
-            'FIRE': '#ff7f00',
-            'WATER': '#0077be',
-            'GRASS': '#4caf50',
-            'ELECTRIC': '#ffd700',
-            'PSYCHIC': "#661970"
+            'Fire': '#ff7f00',
+            'Water': '#0077be',
+            'Grass': '#4caf50',
+            'Electric': '#ffd700',
+            'Psychic': "#661970"
         }
         
         self.setup_gui()

@@ -6,11 +6,11 @@
             "stage": 0,
             "evolves_from": null,
             "hp": 150,
-            "energy_type": "PSYCHIC",
+            "energy_type": "Psychic",
             "attacks": ["psydrive", "psychic_sphere"],
             "retreat_cost": 2,
             "ability": null,
-            "weakness": "FIGHTING",
+            "weakness": "Fighting",
             "is_ex": true
         }
     },
@@ -21,11 +21,11 @@
             "stage": 0,
             "evolves_from": null,
             "hp": 60,
-            "energy_type": "PSYCHIC",
+            "energy_type": "Psychic",
             "attacks": ["ram"],
             "retreat_cost": 1,
             "ability": null,
-            "weakness": "DARKNESS",
+            "weakness": "Darkness",
             "is_ex": false
         }
     },
@@ -36,11 +36,11 @@
             "stage": 1,
             "evolves_from": "Ralts",
             "hp": 80,
-            "energy_type": "PSYCHIC",
+            "energy_type": "Psychic",
             "attacks": ["smack"],
             "retreat_cost": 1,
             "ability": null,
-            "weakness": "DARKNESS",
+            "weakness": "Darkness",
             "is_ex": false
         }
     },
@@ -51,11 +51,11 @@
             "stage": 2,
             "evolves_from": "Kirlia",
             "hp": 110,
-            "energy_type": "PSYCHIC",
+            "energy_type": "Psychic",
             "attacks": ["psyshot"],
             "retreat_cost": 2,
             "ability": "PsyShadow",
-            "weakness": "DARKNESS",
+            "weakness": "Darkness",
             "is_ex": false
         }
     }
