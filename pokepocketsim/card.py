@@ -26,8 +26,8 @@ CARDS_DICT: Dict[Cards, Dict[str, Any]] = {
         "retreat_cost": 2,
         "ability": None,
         "weakness": EnergyType.FIGHTING,
-        "is_basic": True,
         "is_ex": True,
+        "stage": 0,
         "evolves_from": None,
     },
     Cards.RALTS: {
@@ -37,8 +37,8 @@ CARDS_DICT: Dict[Cards, Dict[str, Any]] = {
         "retreat_cost": 1,
         "ability": None,
         "weakness": EnergyType.DARKNESS,
-        "is_basic": True,
         "is_ex": False,
+        "stage": 0,
         "evolves_from": None,
     },
     Cards.KIRLIA: {
@@ -48,8 +48,8 @@ CARDS_DICT: Dict[Cards, Dict[str, Any]] = {
         "retreat_cost": 1,
         "ability": None,
         "weakness": EnergyType.DARKNESS,
-        "is_basic": False,
         "is_ex": False,
+        "stage": 1,
         "evolves_from": Cards.RALTS,
     },
     Cards.GARDEVOIR: {
@@ -59,8 +59,8 @@ CARDS_DICT: Dict[Cards, Dict[str, Any]] = {
         "retreat_cost": 2,
         "ability": Ability.PsyShadow(),
         "weakness": EnergyType.DARKNESS,
-        "is_basic": False,
         "is_ex": False,
+        "stage": 2,
         "evolves_from": Cards.KIRLIA,
     },
 }
@@ -76,8 +76,8 @@ class Card:
         retreat_cost: int,
         ability: Optional[Any] = None,
         weakness: Optional[EnergyType] = None,
-        is_basic: bool = True,
         is_ex: bool = False,
+        stage: int = 0,
         evolves_from: Optional[Union[Cards, "Card"]] = None,
     ) -> None:
         self.uuid: uuid.UUID = uuid.uuid4()
@@ -92,11 +92,16 @@ class Card:
         self.ability: Optional[Any] = ability
         self.conditions: List[Any] = []
         self.weakness: Optional[EnergyType] = weakness
-        self.is_basic: bool = is_basic
         self.is_ex: bool = is_ex
+        self.stage: int = stage
         self.has_used_ability: bool = False
         self.evolves_from: Optional[Union[Cards, "Card"]] = evolves_from
         self.can_evolve: bool = False
+
+    @property
+    def is_basic(self) -> bool:
+        """Computed property: a card is Basic when its stage is 0."""
+        return getattr(self, "stage", 0) == 0
 
     def add_condition(self, condition: Any) -> None:
         if any(isinstance(cond, condition.__class__) for cond in self.conditions):
@@ -176,8 +181,8 @@ class Card:
         self.retreat_cost = evolved_card_info["retreat_cost"]
         self.ability = evolved_card_info["ability"]
         self.weakness = evolved_card_info["weakness"]
-        self.is_basic = evolved_card_info["is_basic"]
         self.is_ex = evolved_card_info["is_ex"]
+        self.stage = evolved_card_info["stage"]
         self.evolves_from = evolved_card_info["evolves_from"]
         self.can_evolve = False
 
@@ -216,6 +221,7 @@ class Card:
             "weakness": weakness_name,
             "is_basic": self.is_basic,
             "is_ex": self.is_ex,
+            "stage": self.stage,
             "evolves_from": evolves_from_name,
             "can_evolve": self.can_evolve,
             "conditions": [cond.serialize() for cond in self.conditions],
