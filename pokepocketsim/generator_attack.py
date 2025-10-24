@@ -1438,7 +1438,7 @@ def apply_damage(func: Callable) -> Callable:
                 and player.opponent.active_card
                 and player.active_card
                 and hasattr(player.opponent.active_card, "weakness")
-                and player.opponent.active_card.weakness == player.active_card.type
+                and player.opponent.active_card.weakness == player.active_card.energy_type
             ):
                 damage += 20
 

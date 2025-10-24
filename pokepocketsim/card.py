@@ -21,7 +21,7 @@ class Cards(Enum):
 CARDS_DICT: Dict[Cards, Dict[str, Any]] = {
     Cards.MEWTWO_EX: {
         "hp": 150,
-        "type": EnergyType.PSYCHIC,
+        "energy_type": EnergyType.PSYCHIC,
         "attacks": [Attack.psydrive, Attack.psychic_sphere],
         "retreat_cost": 2,
         "ability": None,
@@ -32,7 +32,7 @@ CARDS_DICT: Dict[Cards, Dict[str, Any]] = {
     },
     Cards.RALTS: {
         "hp": 60,
-        "type": EnergyType.PSYCHIC,
+        "energy_type": EnergyType.PSYCHIC,
         "attacks": [Attack.ram],
         "retreat_cost": 1,
         "ability": None,
@@ -43,7 +43,7 @@ CARDS_DICT: Dict[Cards, Dict[str, Any]] = {
     },
     Cards.KIRLIA: {
         "hp": 80,
-        "type": EnergyType.PSYCHIC,
+        "energy_type": EnergyType.PSYCHIC,
         "attacks": [Attack.smack],
         "retreat_cost": 1,
         "ability": None,
@@ -54,7 +54,7 @@ CARDS_DICT: Dict[Cards, Dict[str, Any]] = {
     },
     Cards.GARDEVOIR: {
         "hp": 110,
-        "type": EnergyType.PSYCHIC,
+        "energy_type": EnergyType.PSYCHIC,
         "attacks": [Attack.psyshot],
         "retreat_cost": 2,
         "ability": Ability.PsyShadow(),
@@ -71,7 +71,7 @@ class Card:
         self,
         name: str,
         hp: int,
-        type: EnergyType,
+        energy_type: EnergyType,
         attacks: List[Callable],
         retreat_cost: int,
         ability: Optional[Any] = None,
@@ -84,7 +84,7 @@ class Card:
         self.name: str = name
         self.max_hp: int = hp
         self.hp: int = hp
-        self.type: EnergyType = type
+        self.energy_type: EnergyType = energy_type
         self.energies: Dict[str, int] = {}
         self.attacks: List[Callable] = attacks
         self.retreat_cost: int = retreat_cost
@@ -176,7 +176,7 @@ class Card:
         self.name = evolved_card_name.value
         self.hp = evolved_card_info["hp"] - (self.max_hp - self.hp)
         self.max_hp = evolved_card_info["hp"]
-        self.type = evolved_card_info["type"]
+        self.energy_type = evolved_card_info["energy_type"]
         self.attacks = evolved_card_info["attacks"]
         self.retreat_cost = evolved_card_info["retreat_cost"]
         self.ability = evolved_card_info["ability"]
@@ -214,7 +214,7 @@ class Card:
             "name": self.name,
             "hp": self.hp,
             "max_hp": self.max_hp,
-            "type": str(self.type),
+            "type": str(self.energy_type),
             "energies": self.energies,
             "retreat_cost": self.retreat_cost,
             "ability": ability_name,

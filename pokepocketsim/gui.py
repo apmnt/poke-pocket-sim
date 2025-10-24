@@ -193,7 +193,7 @@ class GUI:
             placeholder.name_label['text'] = card.name
             placeholder.hp_label['text'] = str(card.hp) + " HP"
             placeholder.energy_label['text'] = card.energies
-            placeholder['bg'] = self.colors[card.type.name]
+            placeholder['bg'] = self.colors[card.energy_type.name]
 
     def _update_bench_placeholders(self, bench_arr, bench_cards) -> None:
 
@@ -214,7 +214,7 @@ class GUI:
             bench_arr[i].name_label['text'] = card.name
             bench_arr[i].hp_label['text'] = str(card.hp) + " HP"
             bench_arr[i].energy_label['text'] = card.energies
-            bench_arr[i]['bg'] = self.colors[card.type.name]
+            bench_arr[i]['bg'] = self.colors[card.energy_type.name]
     
     def update_gui(self, starting_player: Player, second_player: Player) -> None: 
 

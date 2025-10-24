@@ -16,7 +16,7 @@ class Supporter:
 
         def card_able_to_use(self, card: ICard) -> bool:
             # Check if card type is either the string "grass" or the EnergyType.GRASS
-            card_type = str(card.type)
+            card_type = str(card.energy_type)
             return card_type.lower() == "grass"
 
         def use(self, card: ICard) -> None:
