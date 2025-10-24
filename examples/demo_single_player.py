@@ -6,8 +6,8 @@ This demo can run in two modes:
 2. Bot mode - Both players are bots (no UI needed)
 
 Usage:
-    python demo_tui.py           # Run with CLI (human vs bot)
-    python demo_tui.py --bot     # Run with both bots
+    python demo_single_player.py           # Run with CLI (human vs bot)
+    python demo_single_player.py --bot     # Run with both bots
 """
 
 import argparse
