@@ -1,6 +1,7 @@
 import random
 import uuid
-from enum import Enum
+import json
+from pathlib import Path
 from .action import Action, ActionType
 from .attack import Attack, EnergyType
 from .ability import Ability
@@ -11,63 +12,64 @@ if TYPE_CHECKING:
     from .player import Player
 
 
-class Cards(Enum):
-    MEWTWO_EX = "Mewtwo EX"
-    RALTS = "Ralts"
-    KIRLIA = "Kirlia"
-    GARDEVOIR = "Gardevoir"
+def _parse_card_data(card_data: List[Dict[str, Dict[str, Any]]]) -> List[Dict[str, Dict[str, Any]]]:
+    """Process raw card data from JSON to convert strings to enum values."""
+    for entry in card_data:
+        pokemon = entry.get("Pokemon", {})
+        if not pokemon:
+            continue
+
+        # Convert energy type from string to enum
+        if "energy_type" in pokemon:
+            pokemon["energy_type"] = getattr(EnergyType, pokemon["energy_type"])
+
+        # Convert weakness from string to enum if present
+        if "weakness" in pokemon and pokemon["weakness"]:
+            pokemon["weakness"] = getattr(EnergyType, pokemon["weakness"])
+
+        # Convert attacks from string names to function references
+        if "attacks" in pokemon:
+            pokemon["attacks"] = [getattr(Attack, name) for name in pokemon["attacks"]]
+
+        # Convert ability from string to instance if present
+        if "ability" in pokemon and pokemon["ability"]:
+            pokemon["ability"] = getattr(Ability, pokemon["ability"])()
+
+    return card_data
 
 
-CARDS_DICT: Dict[Cards, Dict[str, Any]] = {
-    Cards.MEWTWO_EX: {
-        "id": "A1 129",
-        "hp": 150,
-        "energy_type": EnergyType.PSYCHIC,
-        "attacks": [Attack.psydrive, Attack.psychic_sphere],
-        "retreat_cost": 2,
-        "ability": None,
-        "weakness": EnergyType.FIGHTING,
-        "is_ex": True,
-        "stage": 0,
-        "evolves_from": None,
-    },
-    Cards.RALTS: {
-        "id": "A1 130",
-        "hp": 60,
-        "energy_type": EnergyType.PSYCHIC,
-        "attacks": [Attack.ram],
-        "retreat_cost": 1,
-        "ability": None,
-        "weakness": EnergyType.DARKNESS,
-        "is_ex": False,
-        "stage": 0,
-        "evolves_from": None,
-    },
-    Cards.KIRLIA: {
-        "id": "A1 131",
-        "hp": 80,
-        "energy_type": EnergyType.PSYCHIC,
-        "attacks": [Attack.smack],
-        "retreat_cost": 1,
-        "ability": None,
-        "weakness": EnergyType.DARKNESS,
-        "is_ex": False,
-        "stage": 1,
-        "evolves_from": Cards.RALTS,
-    },
-    Cards.GARDEVOIR: {
-        "id": "A1 132",
-        "hp": 110,
-        "energy_type": EnergyType.PSYCHIC,
-        "attacks": [Attack.psyshot],
-        "retreat_cost": 2,
-        "ability": Ability.PsyShadow(),
-        "weakness": EnergyType.DARKNESS,
-        "is_ex": False,
-        "stage": 2,
-        "evolves_from": Cards.KIRLIA,
-    },
-}
+def _load_cards() -> List[Dict[str, Dict[str, Any]]]:
+    """Load and parse the card database from JSON file."""
+    pkg_dir = Path(__file__).parent
+    json_path = pkg_dir / "database.json"
+    
+    try:
+        with open(json_path, 'r', encoding='utf-8') as f:
+            raw_data = json.load(f)
+        return _parse_card_data(raw_data)
+    except (IOError, json.JSONDecodeError) as e:
+        raise RuntimeError(f"Failed to load card database from {json_path}: {e}")
+
+
+# Load card data when module is imported
+CARDS_DATA = _load_cards()
+
+
+def find_card_by_name(name: str) -> Dict[str, Any]:
+    """Find a card dict by its 'name' field in CARDS_DATA.
+
+    The incoming JSON format will be a list where each item is an
+    object like {"Pokemon": {...}}. This function returns the inner card dict
+    for the matching name.
+    """
+    for entry in CARDS_DATA:
+        if not entry:
+            continue
+        # each entry is expected to have a single top-level key like 'Pokemon'
+        inner = next(iter(entry.values()))
+        if inner.get("name") == name:
+            return inner
+    raise ValueError(f"Card {name} not found in CARDS_DATA")
 
 
 class Card:
@@ -83,7 +85,7 @@ class Card:
         weakness: Optional[EnergyType] = None,
         is_ex: bool = False,
         stage: int = 0,
-        evolves_from: Optional[Union[Cards, "Card"]] = None,
+        evolves_from: Optional[Union[str, "Card"]] = None,
     ) -> None:
         self.id: str = id
         self.uuid: uuid.UUID = uuid.uuid4()
@@ -101,7 +103,7 @@ class Card:
         self.is_ex: bool = is_ex
         self.stage: int = stage
         self.has_used_ability: bool = False
-        self.evolves_from: Optional[Union[Cards, "Card"]] = evolves_from
+        self.evolves_from: Optional[Union[str, "Card"]] = evolves_from
         self.can_evolve: bool = False
 
     @property
@@ -159,27 +161,26 @@ class Card:
     def get_total_energy(self) -> int:
         return sum(self.energies.values())
 
-    def evolve(self, evolved_card_name: Cards) -> None:
-        """
-        Evolves this card into the given evolved card.
+    def evolve(self, evolved_card_name: str) -> None:
+        """Evolves this card into the given evolved card.
 
         Args:
-            evolved_card_name (Cards): The card to evolve into.
+            evolved_card_name (str): The name of the card to evolve into.
         """
-        if evolved_card_name not in CARDS_DICT:
-            raise ValueError(f"Card {evolved_card_name} does not exist in CARDS_DICT.")
-
-        evolved_card_info = CARDS_DICT[evolved_card_name]
-
-        if (
-            evolved_card_info["evolves_from"] is None
-            or evolved_card_info["evolves_from"].value != self.name
-        ):
+        try:
+            evolved_card_info = find_card_by_name(evolved_card_name)
+        except ValueError:
             raise ValueError(
-                f"{evolved_card_name.value} cannot evolve from {self.name}"
+                f"Card {evolved_card_name} does not exist in CARDS_DATA."
             )
 
-        self.name = evolved_card_name.value
+        # evolved_card_info['evolves_from'] is expected to be the name (str)
+        evolves_from_value = evolved_card_info.get("evolves_from")
+        if evolves_from_value is None or evolves_from_value != self.name:
+            raise ValueError(f"{evolved_card_name} cannot evolve from {self.name}")
+
+        # apply evolution
+        self.name = evolved_card_info["name"]
         self.hp = evolved_card_info["hp"] - (self.max_hp - self.hp)
         self.max_hp = evolved_card_info["hp"]
         self.energy_type = evolved_card_info["energy_type"]
@@ -209,12 +210,12 @@ class Card:
 
         evolves_from_name = None
         if self.evolves_from:
-            if isinstance(self.evolves_from, Cards):
-                evolves_from_name = self.evolves_from.value
+            if isinstance(self.evolves_from, str):
+                evolves_from_name = self.evolves_from
             else:
                 # If evolves_from is a Card object
                 other_card = self.evolves_from
-                evolves_from_name = other_card.name
+                evolves_from_name = getattr(other_card, "name", str(other_card))
 
         return {
             "id": self.id,  # Card's printed ID (e.g. set number)
@@ -236,18 +237,20 @@ class Card:
         }
 
     @staticmethod
-    def create_card(card_enum: Cards) -> "Card":
+    def create_card(card_name: str) -> "Card":
         """
-        Factory method to create a card from an enum.
+        Factory method to create a card from a name or Cards class constant.
 
         Args:
-            card_enum (Cards): The enum value representing the card.
+            card_name (Union[str, Cards]): The name of the card to create, either as a string
+                                        or a Cards class constant.
 
         Returns:
-            Card: A new card instance with properties set according to the enum.
+            Card: A new card instance with properties set according to the name.
         """
-        if card_enum not in CARDS_DICT:
-            raise ValueError(f"Card {card_enum} not found in CARDS_DICT.")
+        try:
+            card_info = find_card_by_name(card_name)
+        except ValueError:
+            raise ValueError(f"Card {card_name} not found in CARDS_DATA.")
 
-        card_info = CARDS_DICT[card_enum]
-        return Card(name=card_enum.value, **card_info)
+        return Card(**card_info)

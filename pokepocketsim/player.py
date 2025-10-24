@@ -13,7 +13,7 @@ from typing import (
 )
 import uuid
 from .action import Action, ActionType
-from .card import Card, Cards
+from .card import Card
 from .item import Item
 from .supporter import Supporter
 from .attack import Attack
@@ -366,31 +366,26 @@ class Player:
             for card in self.hand:
                 if isinstance(card, Card) and card.evolves_from is not None:
                     for card_to_evolve in self.active_card_and_bench:
-                        # Check if evolves_from has a value attribute and conditions match
-                        try:
-                            evolves_from_name = getattr(
-                                card.evolves_from, "value", None
-                            )
-                            if (
-                                card_to_evolve
-                                and evolves_from_name
-                                and evolves_from_name == card_to_evolve.name
-                                and card_to_evolve.can_evolve
-                            ):
-                                actions.append(
-                                    Action(
-                                        f"Evolve {card_to_evolve.name} to {card.name}",
-                                        lambda player=self, card_to_evolve_id=card_to_evolve.uuid, evolution_card_id=card.uuid: Player.evolve_and_remove_from_hand(
-                                            player,
-                                            card_to_evolve_id,
-                                            evolution_card_id,
-                                        ),
-                                        ActionType.EVOLVE,
-                                    )
+                        # determines evolves_from name (we use string names only)
+                        evolves_from_name = card.evolves_from if isinstance(card.evolves_from, str) else None
+
+                        if (
+                            card_to_evolve
+                            and evolves_from_name
+                            and evolves_from_name == card_to_evolve.name
+                            and card_to_evolve.can_evolve
+                        ):
+                            actions.append(
+                                Action(
+                                    f"Evolve {card_to_evolve.name} to {card.name}",
+                                    lambda player=self, card_to_evolve_id=card_to_evolve.uuid, evolution_card_id=card.uuid: Player.evolve_and_remove_from_hand(
+                                        player,
+                                        card_to_evolve_id,
+                                        evolution_card_id,
+                                    ),
+                                    ActionType.EVOLVE,
                                 )
-                        except AttributeError:
-                            # Skip cards with invalid evolves_from attribute
-                            continue
+                            )
 
             # ABILITY
             for card in self.active_card_and_bench:
@@ -500,14 +495,12 @@ class Player:
         evolution_card = Player.find_by_id(player.hand, evolution_card_id)
 
         if card_to_evolve and evolution_card:
-            # Convert name to enum format and evolve
-            enum_name = evolution_card.name.replace(" ", "_").upper()
+            # Evolve using the evolution card's name (string-based card registry)
             try:
-                card_enum = Cards[enum_name]
-                card_to_evolve.evolve(card_enum)
+                card_to_evolve.evolve(evolution_card.name)
                 Player.remove_card_from_hand(player, evolution_card.uuid)
-            except KeyError:
-                raise ValueError(f"Cannot find card enum for {evolution_card.name}")
+            except Exception as e:
+                raise ValueError(f"Failed to evolve {card_to_evolve.name} to {evolution_card.name}: {e}")
         else:
             raise ValueError("Card to evolve or evolution card not found.")
 
