@@ -80,7 +80,7 @@ class Card:
         is_ex: bool = False,
         evolves_from: Optional[Union[Cards, "Card"]] = None,
     ) -> None:
-        self.id: uuid.UUID = uuid.uuid4()
+        self.uuid: uuid.UUID = uuid.uuid4()
         self.name: str = name
         self.max_hp: int = hp
         self.hp: int = hp

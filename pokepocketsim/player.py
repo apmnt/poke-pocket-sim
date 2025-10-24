@@ -380,7 +380,7 @@ class Player:
                                 actions.append(
                                     Action(
                                         f"Evolve {card_to_evolve.name} to {card.name}",
-                                        lambda player=self, card_to_evolve_id=card_to_evolve.id, evolution_card_id=card.id: Player.evolve_and_remove_from_hand(
+                                        lambda player=self, card_to_evolve_id=card_to_evolve.uuid, evolution_card_id=card.uuid: Player.evolve_and_remove_from_hand(
                                             player,
                                             card_to_evolve_id,
                                             evolution_card_id,
@@ -435,7 +435,7 @@ class Player:
                     actions.append(
                         Action(
                             f"Add {card.name} to bench",
-                            lambda player=self, card_id=card.id: Player.add_card_to_bench(
+                            lambda player=self, card_id=card.uuid: Player.add_card_to_bench(
                                 player, card_id
                             ),
                             ActionType.ADD_CARD_TO_BENCH,
@@ -448,7 +448,7 @@ class Player:
                     actions.append(
                         Action(
                             f"Add {self.current_energy} energy to {card.name}",
-                            lambda player=self, card_id=card.id, energy=self.current_energy: self._add_energy_action(
+                            lambda player=self, card_id=card.uuid, energy=self.current_energy: self._add_energy_action(
                                 card_id, energy
                             ),
                             ActionType.ADD_ENERGY,
@@ -462,7 +462,7 @@ class Player:
                         actions.append(
                             Action(
                                 f"Set {card.name} as active card",
-                                lambda player=self, card_id=card.id: Player.set_active_card_from_hand(
+                                lambda player=self, card_id=card.uuid: Player.set_active_card_from_hand(
                                     player, card_id
                                 ),
                                 ActionType.SET_ACTIVE_CARD,
@@ -505,7 +505,7 @@ class Player:
             try:
                 card_enum = Cards[enum_name]
                 card_to_evolve.evolve(card_enum)
-                Player.remove_card_from_hand(player, evolution_card.id)
+                Player.remove_card_from_hand(player, evolution_card.uuid)
             except KeyError:
                 raise ValueError(f"Cannot find card enum for {evolution_card.name}")
         else:
@@ -627,7 +627,7 @@ class Player:
     @staticmethod
     def find_by_id(objects: List[Any], target_id: uuid.UUID) -> Optional[Any]:
         for obj in objects:
-            if hasattr(obj, "id") and obj.id == target_id:
+            if hasattr(obj, "uuid") and obj.uuid == target_id:
                 return obj
         return None
 

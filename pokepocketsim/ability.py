@@ -36,7 +36,7 @@ class Ability:
 
             ab_action = Action(
                 f"Use ability {self.name} on {player.active_card.name}",
-                lambda player, card_using_ability_id=card_using_ability.id, self=self: self.use(
+                lambda player, card_using_ability_id=card_using_ability.uuid, self=self: self.use(
                     player, card_using_ability_id
                 ),
                 ActionType.ABILITY,
