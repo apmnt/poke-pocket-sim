@@ -1,8 +1,8 @@
+import inspect
 from enum import Enum
 from functools import wraps
-import inspect
 from pprint import pformat
-from typing import Dict, Any, Callable, List, Optional, cast, Union
+from typing import Any, Callable, Dict, cast
 
 
 class EnergyType(Enum):
@@ -1476,9 +1476,7 @@ class Attack:
 
         # Make a copy to avoid modifying the original
         energies = card.energies.copy()
-        attack_cost: Dict[str, int] = cast(
-            Dict[str, int], ATTACKS[attack_name].get("energy", {})
-        )
+        attack_cost: Dict[str, int] = cast(Dict[str, int], ATTACKS[attack_name].get("energy", {}))
         if not attack_cost:
             # If no energy cost defined, can always use attack
             return True
@@ -1617,9 +1615,7 @@ for attack_name in ATTACKS.keys():
         except TypeError:
             output_content += generate_todo_attack_function(attack_name) + "\n"
         except OSError:
-            output_content += (
-                f"# Source code for {attack_name} could not be retrieved\n"
-            )
+            output_content += f"# Source code for {attack_name} could not be retrieved\n"
     except AttributeError:
         output_content += generate_general_attack_function(attack_name) + "\n"
 

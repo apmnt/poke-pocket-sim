@@ -1,9 +1,9 @@
-import json
 import csv
-from typing import List, Dict, Any, Optional, TYPE_CHECKING
+import json
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
-    from .action import Action
+    pass
 
 
 class DataCollector:

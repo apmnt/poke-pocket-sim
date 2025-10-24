@@ -1,14 +1,24 @@
+import copy
 import os
 import random
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
+from ..data_collector import DataCollector
+from ..mechanics.action import Action
+from ..utils import config
 from .player import Player
-from .attack import Attack
-from .action import Action, ActionType
-from .data_collector import DataCollector
-from .gui import GUI, tk
-from .utils import config
-from typing import List, Tuple, Dict, Any, Optional
-import copy
+
+# Import GUI only when needed to avoid tkinter dependency
+if TYPE_CHECKING:
+    from ..state.match_state import MatchState
+    from ..ui.gui import GUI  # type: ignore
+
+try:
+    from ..ui.gui import GUI, tk  # type: ignore
+except ImportError:
+    GUI = None
+    tk = None
+
 
 class Match:
     """
@@ -55,6 +65,10 @@ class Match:
 
         # GUI setup
         if config.gui_enabled:
+            if tk is None:
+                raise ImportError("tkinter is not available")
+            if GUI is None:
+                raise ImportError("GUI is not available")
             self.root = tk.Tk()
             self.gui = GUI(self.root, self.starting_player, self.second_player)
 
@@ -68,7 +82,7 @@ class Match:
             bool: True if the game is over, False otherwise.
         """
         # Update GUI
-        if config.gui_enabled:
+        if config.gui_enabled and self.gui:
             self.gui.update_gui(self.starting_player, self.second_player)
 
         # Start turn
@@ -77,19 +91,24 @@ class Match:
             active_player = self.second_player
             non_active_player = self.starting_player
 
-            if config.gui_enabled:
-                self.gui.turn_label['text'] = "Opponent's Turn"
-                self.gui.turn_label['bg'] = '#666666'
+            if config.gui_enabled and self.gui:
+                self.gui.turn_label["text"] = "Opponent's Turn"
+                self.gui.turn_label["bg"] = "#666666"
         else:
             active_player = self.starting_player
             non_active_player = self.second_player
 
-            if config.gui_enabled:
-                self.gui.turn_label['text'] = "Your Turn"
-                self.gui.turn_label['bg'] = self.gui.colors['accent']
-        
-        term_size = os.get_terminal_size()
-        print("-" * term_size.columns)
+            if config.gui_enabled and self.gui:
+                self.gui.turn_label["text"] = "Your Turn"
+                self.gui.turn_label["bg"] = self.gui.colors["accent"]
+
+        try:
+            term_size = os.get_terminal_size()
+            separator = "-" * term_size.columns
+        except (OSError, AttributeError):
+            separator = "-" * 80  # Default width if terminal size can't be determined
+
+        print(separator)
         print(
             f"Turn {self.turn}, {active_player.cname}'s turn, {self.starting_player.name} {self.starting_player.points} - {self.second_player.name} {self.second_player.points}"
         )
@@ -104,9 +123,7 @@ class Match:
         if self.game_over:
             print()
             print("------ GAME OVER -------")
-            print(
-                f"{active_player.name} won {active_player.points}-{non_active_player.points}"
-            )
+            print(f"{active_player.name} won {active_player.points}-{non_active_player.points}")
             print(f"after {self.turn} turns")
 
         if self.turn > 100:
@@ -127,12 +144,24 @@ class Match:
             self.data_collector.save_to_csv()
 
     def serialize(self) -> Dict[str, Any]:
+        """Serialize match state to dictionary."""
         return {
             "turn": self.turn,
             "player1": self.starting_player.serialize(),
             "player2": self.second_player.serialize(),
             # Add other relevant match state data
         }
+
+    def to_state(self) -> "MatchState":
+        """
+        Convert Match to MatchState for serialization.
+
+        Returns:
+            MatchState object representing current match state
+        """
+        from ..state import MatchState
+
+        return MatchState.from_match(self)
 
     def get_best_actions_for_player(self, player: Player) -> List[Action]:
         """

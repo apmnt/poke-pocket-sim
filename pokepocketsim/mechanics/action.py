@@ -1,6 +1,5 @@
 from enum import Enum
-from .attack import Attack
-from typing import TYPE_CHECKING, List, Optional, Any, Dict, Callable, Type, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Type
 
 if TYPE_CHECKING:
     from .player import Player
@@ -79,6 +78,4 @@ class Action:
                 ]
             ):
                 return action
-        raise Exception(
-            f"No action found, tried to find \n{action_to_find} from \n{action_list}"
-        )
+        raise Exception(f"No action found, tried to find \n{action_to_find} from \n{action_list}")

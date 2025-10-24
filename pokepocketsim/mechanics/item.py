@@ -1,10 +1,9 @@
-from typing import Optional, TYPE_CHECKING, Dict, Any, cast, Union
-from .protocols import ICard
+from typing import TYPE_CHECKING
+
+from ..protocols import ICard
 
 if TYPE_CHECKING:
-    from .player import Player
-    from .attack import EnergyType
-    from .condition import ConditionBase
+    pass
 
 
 class Item:
@@ -25,5 +24,6 @@ class Item:
                 f"\t- Potion used on {card.name}. Restored {restored_amount} HP. Current HP: {card.hp}"
             )
 
-        def serialize(self) -> str:
+        @staticmethod
+        def serialize() -> str:
             return "Potion"

@@ -1,22 +1,15 @@
-import random
+import uuid
 from typing import (
     TYPE_CHECKING,
     List,
-    Optional,
-    Any,
-    Dict,
-    Callable,
-    Union,
-    cast,
 )
-import uuid
-from .attack import EnergyType
+
 from .action import Action, ActionType
-from .protocols import ICard, IPlayer
+from .attack import EnergyType
 
 if TYPE_CHECKING:
-    from .player import Player
-    from .card import Card
+    from ..core.card import Card
+    from ..core.player import Player
 
 
 # TODO: fix multiple abilities
@@ -28,9 +21,7 @@ class Ability:
         def able_to_use(self, player: "Player") -> bool:
             return True
 
-        def gather_actions(
-            self, player: "Player", card_using_ability: "Card"
-        ) -> List[Action]:
+        def gather_actions(self, player: "Player", card_using_ability: "Card") -> List[Action]:
             if player.active_card is None:
                 return []  # Return empty list if active_card is None
 
@@ -44,7 +35,7 @@ class Ability:
             return [ab_action]  # Return a list containing the action
 
         def use(self, player: "Player", using_card_id: uuid.UUID) -> None:
-            from .card import Card
+            from ..core.card import Card
 
             if player.active_card is None:
                 return  # Early return if active_card is None
@@ -60,9 +51,7 @@ class Ability:
                 return  # Early return if using_card is None
 
             if using_card.has_used_ability:
-                raise Exception(
-                    f"{using_card.name} has already used {self.name} ability"
-                )
+                raise Exception(f"{using_card.name} has already used {self.name} ability")
 
             # Now we know both cards are not None
             Card.add_energy(player, target_card, EnergyType.Psychic.value)
