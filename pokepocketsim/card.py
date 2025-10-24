@@ -35,6 +35,15 @@ def _parse_card_data(card_data: List[Dict[str, Dict[str, Any]]]) -> List[Dict[st
         if "ability" in pokemon and pokemon["ability"]:
             pokemon["ability"] = getattr(Ability, pokemon["ability"])()
 
+        # Normalize retreat_cost: accept either an int or a list (compute length)
+        if "retreat_cost" in pokemon:
+            rc = pokemon["retreat_cost"]
+            if isinstance(rc, list):
+                # JSON format contains list of cost entries, use length as int cost
+                pokemon["retreat_cost"] = len(rc)
+            else:
+                pokemon["retreat_cost"] = int(rc)
+
     return card_data
 
 
