@@ -5,15 +5,16 @@ from typing import (
     Any,
     Callable,
     Dict,
+    List,
     TypeVar,
     cast,
 )
 
-from .attack_common import ATTACKS, EnergyType
+from .attack_common import EnergyType
 
 if TYPE_CHECKING:
-    from .card import Card
-    from .player import Player
+    from ..core.card import Card
+    from ..core.player import Player
 
 
 # Type for attack functions
@@ -34,10 +35,19 @@ def apply_damage(func: F) -> F:
 
     @wraps(func)
     def wrapper(player: "Player", *args: Any, **kwargs: Any) -> None:
-        # Get the appropriate attack data from ATTACKS
+        # Get the attack metadata from the card's attack info
         attack_name = func.__name__
-
         if player.active_card is None:
+            return None
+
+        # Find the attack info in the card's attacks list
+        attack_info = None
+        for attack in player.active_card.attacks:
+            if attack["title"].lower().replace(" ", "_") == attack_name:
+                attack_info = attack
+                break
+
+        if not attack_info:
             return None
 
         # Call the attack function (which may have additional side effects)
@@ -46,36 +56,37 @@ def apply_damage(func: F) -> F:
         if player.opponent is None or player.opponent.active_card is None:
             return None
 
+        # Get fixed damage from attack info
+        damage = attack_info.get("fixed_damage", 0)
+        if damage == 0:
+            return None
+
+        # Type effectiveness
+        if player.active_card and player.opponent.active_card:
+            player_card_type = str(player.active_card.energy_type)
+            opponent_card_type = str(player.opponent.active_card.energy_type)
+
+            # Apply weakness and resistance adjustments
+            damage = apply_type_effects(damage, player_card_type, opponent_card_type)
+
+        # Apply conditions
+        if player.active_card and "Plus10DamageDealed" in player.active_card.conditions:
+            damage += 10
+        if player.active_card and "Plus30DamageDealed" in player.active_card.conditions:
+            damage += 30
+        if (
+            player.opponent.active_card
+            and "Minus20DamageReceived" in player.opponent.active_card.conditions
+        ):
+            damage = max(0, damage - 20)
+
         # Apply damage
-        if attack_name in ATTACKS:
-            damage = ATTACKS[attack_name]["damage"]
-
-            # Type effectiveness
-            if player.active_card and player.opponent.active_card:
-                player_card_type = str(player.active_card.energy_type)
-                opponent_card_type = str(player.opponent.active_card.energy_type)
-
-                # Apply weakness and resistance adjustments
-                damage = apply_type_effects(damage, player_card_type, opponent_card_type)
-
-            # Apply conditions
-            if player.active_card and "Plus10DamageDealed" in player.active_card.conditions:
-                damage += 10
-            if player.active_card and "Plus30DamageDealed" in player.active_card.conditions:
-                damage += 30
-            if (
-                player.opponent.active_card
-                and "Minus20DamageReceived" in player.opponent.active_card.conditions
-            ):
-                damage = max(0, damage - 20)
-
-            # Apply damage
-            if player.opponent.active_card:
-                player.opponent.active_card.hp -= damage
-                if player.print_actions:
-                    print(
-                        f"{player.active_card.name} attacks {player.opponent.active_card.name} for {damage} damage!"
-                    )
+        if player.opponent.active_card:
+            player.opponent.active_card.hp -= damage
+            if player.print_actions:
+                print(
+                    f"{player.active_card.name} attacks {player.opponent.active_card.name} for {damage} damage!"
+                )
 
     return cast(F, wrapper)
 
@@ -128,22 +139,38 @@ class Attack:
         Returns:
             Boolean indicating if the attack can be used
         """
-        attack_name = attack_func.__name__
-        if attack_name not in ATTACKS:
+        # attack_func may be either a callable (Attack.<name>) or an attack
+        # metadata dict (from Card.attacks). Normalize to attack_name.
+        if isinstance(attack_func, dict):
+            attack_name = attack_func.get("title", "").lower().replace(" ", "_")
+        else:
+            attack_name = getattr(attack_func, "__name__", "")
+
+        # Find the corresponding attack info in the card's attack metadata
+        attack_info = None
+        for attack in card.attacks:
+            title_as_func = attack.get("title", "").lower().replace(" ", "_")
+            if title_as_func == attack_name:
+                attack_info = attack
+                break
+                
+        if not attack_info:
             return False
 
-        attack_data = ATTACKS[attack_name]
-        energy_cost = attack_data.get("energy", {})
+        required_energy = attack_info.get("energy_required", [])
+        colorless_count = sum(1 for e in required_energy if e == "Colorless")
+        typed_energy = [e for e in required_energy if e != "Colorless"]
 
-        for energy_type, required_amount in energy_cost.items():
-            if energy_type.lower() == "colorless":
-                # Colorless energy can be satisfied by any energy type
-                if card.get_total_energy() < required_amount:
-                    return False
-            else:
-                # Type-specific energy requirement
-                if card.energies.get(energy_type, 0) < required_amount:
-                    return False
+        # Check each required typed energy
+        for energy in typed_energy:
+            energy_type = energy.lower()
+            if card.energies.get(energy_type, 0) < 1:
+                return False
+
+        # Check if we have enough total energy for colorless cost
+        remaining_energy = card.get_total_energy() - len(typed_energy)
+        if remaining_energy < colorless_count:
+            return False
 
         return True
 
@@ -168,12 +195,6 @@ class Attack:
     @staticmethod
     @apply_damage
     def psychic_sphere(player: "Player") -> None:
-        if player.active_card and player.active_card.energies.get("psychic", 0) < 2:
-            if player.print_actions:
-                print(
-                    f"Not enough energy, only {player.active_card.energies.get('psychic', 0)} psychic energy"
-                )
-            return
         pass
 
     @staticmethod

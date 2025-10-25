@@ -26,14 +26,9 @@ def _parse_card_data(card_data: List[Dict[str, Dict[str, Any]]]) -> List[Dict[st
         if "weakness" in pokemon and pokemon["weakness"]:
             pokemon["weakness"] = getattr(EnergyType, pokemon["weakness"])
 
-        # Convert attacks from detailed objects to function references
+        # Deep copy attacks list to avoid shared references
         if "attacks" in pokemon:
-            def convert_attack(attack_info: Dict[str, Any]) -> Callable:
-                # Convert title to function name (e.g., "Psychic Sphere" -> "psychic_sphere")
-                func_name = attack_info["title"].lower().replace(" ", "_")
-                return getattr(Attack, func_name)
-            
-            pokemon["attacks"] = [convert_attack(attack) for attack in pokemon["attacks"]]
+            pokemon["attacks"] = [attack.copy() for attack in pokemon["attacks"]]
 
         # Convert ability from string to instance if present
         if "ability" in pokemon and pokemon["ability"]:
@@ -92,7 +87,7 @@ class Card:
         name: str,
         hp: int,
         energy_type: EnergyType,
-        attacks: List[Callable],
+        attacks: List[Dict[str, Any]],  # attack metadata dicts from JSON
         retreat_cost: int,
         ability: Optional[Any] = None,
         weakness: Optional[EnergyType] = None,
@@ -107,7 +102,12 @@ class Card:
         self.hp: int = hp
         self.energy_type: EnergyType = energy_type
         self.energies: Dict[str, int] = {}
-        self.attacks: List[Callable] = attacks
+        
+        # attacks is expected to be a list of attack metadata dicts
+        if attacks is None:
+            self.attacks: List[Dict[str, Any]] = []
+        else:
+            self.attacks = [attack.copy() for attack in attacks]
         self.retreat_cost: int = retreat_cost
         self.modifiers: List[Any] = []
         self.ability: Optional[Any] = ability
@@ -189,7 +189,13 @@ class Card:
         self.hp = evolved_card_info["hp"] - (self.max_hp - self.hp)
         self.max_hp = evolved_card_info["hp"]
         self.energy_type = evolved_card_info["energy_type"]
-        self.attacks = evolved_card_info["attacks"]
+        self.attacks = evolved_card_info.get("attacks", [])
+
+        try:
+            self.attacks = [a.copy() for a in evolved_card_info["attacks"]]
+        except Exception:
+            self.attacks = []
+
         self.retreat_cost = evolved_card_info["retreat_cost"]
         self.ability = evolved_card_info["ability"]
         self.weakness = evolved_card_info["weakness"]

@@ -22,7 +22,7 @@
                     "effect": "Discard 2 [P] Energy from this Pokémon."
                 }
             ],
-            "weakness": "Fighting",
+            "weakness": "Darkness",
             "retreat_cost": ["Colorless", "Colorless"],
             "is_ex": true
         }
@@ -60,7 +60,7 @@
             "ability": null,
             "attacks": [
                 {
-                    "energy_required": ["Colorless"],
+                    "energy_required": ["Psychic", "Colorless"],
                     "title": "Smack",
                     "fixed_damage": 30,
                     "effect": null
