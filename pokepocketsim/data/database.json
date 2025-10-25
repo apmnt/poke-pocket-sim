@@ -8,7 +8,20 @@
             "hp": 150,
             "energy_type": "Psychic",
             "ability": null,
-            "attacks": ["psydrive", "psychic_sphere"],
+            "attacks": [
+                {
+                    "energy_required": ["Psychic", "Colorless"],
+                    "title": "Psychic Sphere",
+                    "fixed_damage": 50,
+                    "effect": null
+                },
+                {
+                    "energy_required": ["Psychic", "Psychic", "Colorless", "Colorless"],
+                    "title": "Psydrive",
+                    "fixed_damage": 150,
+                    "effect": "Discard 2 [P] Energy from this Pokémon."
+                }
+            ],
             "weakness": "Fighting",
             "retreat_cost": ["Colorless", "Colorless"],
             "is_ex": true
@@ -23,7 +36,14 @@
             "hp": 60,
             "energy_type": "Psychic",
             "ability": null,
-            "attacks": ["ram"],
+            "attacks": [
+                {
+                    "energy_required": ["Colorless"],
+                    "title": "Ram",
+                    "fixed_damage": 10,
+                    "effect": null
+                }
+            ],
             "weakness": "Darkness",
             "retreat_cost": ["Colorless"],
             "is_ex": false
@@ -38,7 +58,14 @@
             "hp": 80,
             "energy_type": "Psychic",
             "ability": null,
-            "attacks": ["smack"],
+            "attacks": [
+                {
+                    "energy_required": ["Colorless"],
+                    "title": "Smack",
+                    "fixed_damage": 30,
+                    "effect": null
+                }
+            ],
             "weakness": "Darkness",
             "retreat_cost": ["Colorless"],
             "is_ex": false
@@ -53,7 +80,14 @@
             "hp": 110,
             "energy_type": "Psychic",
             "ability": "PsyShadow",
-            "attacks": ["psyshot"],
+            "attacks": [
+                {
+                    "energy_required": ["Psychic", "Psychic", "Colorless"],
+                    "title": "Psyshot",
+                    "fixed_damage": 60,
+                    "effect": null
+                }
+            ],
             "weakness": "Darkness",
             "retreat_cost": ["Colorless", "Colorless"],
             "is_ex": false

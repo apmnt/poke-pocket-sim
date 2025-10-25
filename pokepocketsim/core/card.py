@@ -26,9 +26,14 @@ def _parse_card_data(card_data: List[Dict[str, Dict[str, Any]]]) -> List[Dict[st
         if "weakness" in pokemon and pokemon["weakness"]:
             pokemon["weakness"] = getattr(EnergyType, pokemon["weakness"])
 
-        # Convert attacks from string names to function references
+        # Convert attacks from detailed objects to function references
         if "attacks" in pokemon:
-            pokemon["attacks"] = [getattr(Attack, name) for name in pokemon["attacks"]]
+            def convert_attack(attack_info: Dict[str, Any]) -> Callable:
+                # Convert title to function name (e.g., "Psychic Sphere" -> "psychic_sphere")
+                func_name = attack_info["title"].lower().replace(" ", "_")
+                return getattr(Attack, func_name)
+            
+            pokemon["attacks"] = [convert_attack(attack) for attack in pokemon["attacks"]]
 
         # Convert ability from string to instance if present
         if "ability" in pokemon and pokemon["ability"]:
