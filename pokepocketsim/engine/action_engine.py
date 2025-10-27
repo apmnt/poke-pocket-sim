@@ -136,11 +136,19 @@ def get_available_actions(player: "Player") -> List[Action]:
 
         # ATTACK ACTIONS
         for attack in player.active_card.attacks:
+            if isinstance(attack, dict):
+                func_name = attack.get("title", "").lower().replace(" ", "_")
+                attack_callable = getattr(Attack, func_name)
+                display_name = attack.get("title", str(attack))
+            else:
+                attack_callable = attack
+                display_name = getattr(attack, "__name__", str(attack))
+
             if Attack.can_use_attack(player.active_card, attack):
                 actions.append(
                     Action(
-                        f"{player.active_card.name} use {getattr(attack, '__name__', str(attack))}",
-                        attack,
+                        f"{player.active_card.name} use {display_name}",
+                        lambda player, _atk=attack_callable: _atk(player),
                         ActionType.ATTACK,
                         can_continue_turn=False,
                     )
